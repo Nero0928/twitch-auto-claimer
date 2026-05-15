@@ -1,12 +1,12 @@
-// Twitch Auto Claimer - Content Script v6
-// Handles iframes and shadow DOMs for Twitch's UI
+// Twitch Auto Claimer - Content Script v7
+// Uses aria-label and class selectors from actual Twitch DOM inspection
 
 (function() {
   const DEBUG = true;
   let isEnabled = true;
   let claimedCount = 0;
   let lastClaimTime = 0;
-  const CLAIM_COOLDOWN = 6000;
+  const CLAIM_COOLDOWN = 5000;
 
   function log(...args) {
     if (DEBUG) console.log('[Twitch Auto Claimer]', ...args);
@@ -19,111 +19,70 @@
     }
   });
 
-  // Click with full event sequence
   function clickElement(el) {
     if (!el) return false;
-    if (el.hasAttribute('disabled')) el.removeAttribute('disabled');
-    el.classList.remove('disabled');
-    try { el.focus(); } catch(e) {}
-
     try {
+      el.focus();
       const rect = el.getBoundingClientRect();
       const cx = rect.left + rect.width / 2;
       const cy = rect.top + rect.height / 2;
-
       ['mousedown', 'mouseup', 'click'].forEach(type => {
         el.dispatchEvent(new MouseEvent(type, {
           bubbles: true, cancelable: true, view: window, clientX: cx, clientY: cy
         }));
       });
-      log('[Click] Multi-event sent');
       return true;
     } catch(e) {
       try { el.click(); return true; } catch(e2) { return false; }
     }
   }
 
-  // Find all claimable buttons across main document, iframes, and shadow DOMs
-  function findAllClaimButtons() {
-    const results = [];
-
-    // Helper: scan a container for claim buttons
-    function scanContainer(container, label) {
-      if (!container) return;
-
-      // Scan buttons
-      const buttons = container.querySelectorAll('button');
-      buttons.forEach(btn => {
-        const text = (btn.textContent || '').trim();
-        const rect = btn.getBoundingClientRect();
-        if (rect.width > 0 && rect.height > 0) {
-          const dataAttr = btn.getAttribute?.('data-a-target') || '';
-          const classes = (btn.className || '').toLowerCase();
-          const html = (btn.innerHTML || '').toLowerCase();
-
-          // Check if this looks like a reward button
-          const isClaim = text.toLowerCase() === 'claim' ||
-                         text.toLowerCase().includes('領取') ||
-                         dataAttr.includes('claim') ||
-                         classes.includes('reward') ||
-                         html.includes('chest') || html.includes('treasure');
-
-          if (isClaim) {
-            results.push({ el: btn, text, label });
-            log(`[Found] ${label}: "${text.substring(0, 30)}" class:${classes.substring(0, 40)}`);
-          }
-        }
-      });
-
-      // Scan elements with green background (Twitch reward green)
-      const allEls = container.querySelectorAll('div, span, button');
-      allEls.forEach(el => {
-        try {
-          const rect = el.getBoundingClientRect();
-          if (rect.width < 20 || rect.height < 20) return;
-          if (rect.width > 400 || rect.height > 150) return;
-
-          const styles = window.getComputedStyle(el);
-          const bg = styles.backgroundColor;
-          // Twitch green: rgb(57, 191, 57)
-          if (bg.includes('57') && bg.includes('191') && bg.includes('57') && !bg.includes('0, 0')) {
-            const text = (el.textContent || '').trim();
-            const classes = (el.className || '').toLowerCase();
-            if (!results.some(r => r.el === el)) {
-              results.push({ el, text, label: label + ' [GREEN]' });
-              log(`[Found] ${label} [GREEN]: "${text.substring(0, 30)}"`);
-            }
-          }
-        } catch(e) {}
-      });
+  // Find claim button using Twitch's specific selectors
+  function findClaimButton() {
+    // Method 1: aria-label (most reliable - directly from Twitch DOM)
+    const byAria = document.querySelector('[aria-label="領取額外獎勵"]');
+    if (byAria) {
+      log('[Method 1] Found via aria-label="領取額外獎勵"');
+      return byAria;
     }
 
-    // Main document
-    scanContainer(document, 'MainDoc');
-
-    // All iframes
-    const iframes = document.querySelectorAll('iframe');
-    log(`[Scan] Found ${iframes.length} iframes`);
-    iframes.forEach((iframe, idx) => {
-      try {
-        const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document;
-        if (iframeDoc) {
-          scanContainer(iframeDoc, `iframe[${idx}]`);
-        }
-      } catch(e) {
-        // Cross-origin iframe, can't access
+    // Method 2: aria-label variations (English, other languages)
+    const ariaVariants = [
+      'Claim Bonus',
+      'claim bonus',
+      'Claim extra reward',
+      'claim extra reward'
+    ];
+    for (const label of ariaVariants) {
+      const el = document.querySelector(`[aria-label="${label}"]`);
+      if (el) {
+        log(`[Method 1b] Found via aria-label="${label}"`);
+        return el;
       }
-    });
+    }
 
-    // Shadow DOMs (Twitch uses these for some components)
-    const shadowHosts = document.querySelectorAll('*');
-    shadowHosts.forEach((host, idx) => {
-      if (host.shadowRoot) {
-        scanContainer(host.shadowRoot, `shadow[${idx}]`);
-      }
-    });
+    // Method 3: class name "claimable-bonus__icon" (exact from inspection)
+    const byClass = document.querySelector('.claimable-bonus__icon');
+    if (byClass) {
+      log('[Method 2] Found via .claimable-bonus__icon');
+      return byClass;
+    }
 
-    return results;
+    // Method 4: partial class match
+    const partialClass = document.querySelector('[class*="claimable-bonus"]');
+    if (partialClass) {
+      log('[Method 3] Found via [class*="claimable-bonus"]');
+      return partialClass;
+    }
+
+    // Method 5: Any element with "claimable" in class
+    const claimable = document.querySelector('[class*="claimable"]');
+    if (claimable) {
+      log('[Method 4] Found via [class*="claimable"]');
+      return claimable;
+    }
+
+    return null;
   }
 
   function tryClaim() {
@@ -131,12 +90,17 @@
     const now = Date.now();
     if (now - lastClaimTime < CLAIM_COOLDOWN) return false;
 
-    const buttons = findAllClaimButtons();
-    if (buttons.length > 0) {
-      const first = buttons[0];
-      const text = first.text.substring(0, 40) || 'unknown';
-      log(`[Claim] Clicking: "${text}"`);
-      const clicked = clickElement(first.el);
+    const btn = findClaimButton();
+    if (btn) {
+      // Verify button is visible
+      const rect = btn.getBoundingClientRect();
+      if (rect.width === 0 || rect.height === 0) {
+        log('[Skip] Button exists but not visible');
+        return false;
+      }
+
+      log(`[Claim] Clicking: aria-label="${btn.getAttribute('aria-label') || 'none'}"`);
+      const clicked = clickElement(btn);
       if (clicked) {
         lastClaimTime = now;
         claimedCount++;
@@ -145,45 +109,24 @@
         try { localStorage.setItem('twitchAutoClaimerCount', claimedCount); } catch(e) {}
         return true;
       }
-    } else {
-      // Debug: show what buttons exist
-      const allBtns = document.querySelectorAll('button');
-      if (allBtns.length > 0 && Math.random() < 0.1) { // Log occasionally to avoid spam
-        log(`[Debug] ${allBtns.length} buttons on page, none claimable`);
-        allBtns.forEach(btn => {
-          const text = (btn.textContent || '').trim().substring(0, 20);
-          if (text) log(`  button: "${text}"`);
-        });
-      }
     }
     return false;
   }
 
-  log('[Init] Twitch Auto Claimer v6 loaded');
+  log('[Init] Twitch Auto Claimer v7 loaded');
 
-  // Watch main document
-  const observer = new MutationObserver((mutations) => {
-    if (!isEnabled) return;
-    tryClaim();
+  // Main observer
+  const observer = new MutationObserver(() => {
+    if (isEnabled) tryClaim();
   });
   observer.observe(document.body, { childList: true, subtree: true });
 
-  // Watch for new iframes
-  const iframeObserver = new MutationObserver((mutations) => {
-    mutations.forEach(m => {
-      m.addedNodes?.forEach(node => {
-        if (node.tagName === 'IFRAME') {
-          log('[Iframe] New iframe detected');
-          setTimeout(tryClaim, 1000); // Wait for iframe to load
-        }
-      });
-    });
-  });
-  iframeObserver.observe(document.documentElement, { childList: true, subtree: true });
+  // Initial check
+  setTimeout(tryClaim, 2000);
+  setInterval(tryClaim, 2000);
 
-  // Periodic scan
-  setTimeout(tryClaim, 3000);
-  setInterval(tryClaim, 2500);
+  // Also scan on any click
+  document.addEventListener('click', () => setTimeout(tryClaim, 100), true);
 
   log('[Ready] Watching for rewards...');
 })();
