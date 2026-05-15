@@ -1,5 +1,5 @@
-// Twitch Auto Claimer - Content Script v7
-// Uses aria-label and class selectors from actual Twitch DOM inspection
+// Twitch Auto Claimer - Content Script v8
+// Cross-tab coordination via BroadcastChannel API
 
 (function() {
   const DEBUG = true;
@@ -7,14 +7,36 @@
   let claimedCount = 0;
   let lastClaimTime = 0;
   const CLAIM_COOLDOWN = 5000;
+  const CHANNEL_NAME = 'twitch-auto-claimer-sync';
 
   function log(...args) {
     if (DEBUG) console.log('[Twitch Auto Claimer]', ...args);
   }
 
+  // BroadcastChannel for cross-tab communication
+  let channel;
+  try {
+    channel = new BroadcastChannel(CHANNEL_NAME);
+    channel.onmessage = (event) => {
+      const { type, channelId, rewardId, timestamp } = event.data;
+      if (type === 'CLAIMED' && channelId !== getChannelId()) {
+        log(`[Sync] Another tab claimed this reward, skipping`);
+      }
+    };
+  } catch(e) {
+    log('[Sync] BroadcastChannel not supported');
+  }
+
+  // Generate unique ID for this tab
+  function getChannelId() {
+    return Math.random().toString(36).substring(2, 10);
+  }
+  const myChannelId = getChannelId();
+
   browser.runtime.onMessage.addListener((message) => {
-    if (message.type === 'TOGGLE') isEnabled = message.enabled;
-    else if (message.type === 'GET_STATUS') {
+    if (message.type === 'TOGGLE') {
+      isEnabled = message.enabled;
+    } else if (message.type === 'GET_STATUS') {
       browser.runtime.sendMessage({ type: 'STATUS', enabled: isEnabled, claimed: claimedCount });
     }
   });
@@ -39,51 +61,41 @@
 
   // Find claim button using Twitch's specific selectors
   function findClaimButton() {
-    // Method 1: aria-label (most reliable - directly from Twitch DOM)
+    // Primary selector: aria-label
     const byAria = document.querySelector('[aria-label="領取額外獎勵"]');
     if (byAria) {
-      log('[Method 1] Found via aria-label="領取額外獎勵"');
+      log('[Found] aria-label="領取額外獎勵"');
       return byAria;
     }
 
-    // Method 2: aria-label variations (English, other languages)
-    const ariaVariants = [
-      'Claim Bonus',
-      'claim bonus',
-      'Claim extra reward',
-      'claim extra reward'
-    ];
-    for (const label of ariaVariants) {
-      const el = document.querySelector(`[aria-label="${label}"]`);
-      if (el) {
-        log(`[Method 1b] Found via aria-label="${label}"`);
-        return el;
-      }
-    }
-
-    // Method 3: class name "claimable-bonus__icon" (exact from inspection)
+    // Fallback: class name
     const byClass = document.querySelector('.claimable-bonus__icon');
     if (byClass) {
-      log('[Method 2] Found via .claimable-bonus__icon');
+      log('[Found] .claimable-bonus__icon');
       return byClass;
     }
 
-    // Method 4: partial class match
-    const partialClass = document.querySelector('[class*="claimable-bonus"]');
-    if (partialClass) {
-      log('[Method 3] Found via [class*="claimable-bonus"]');
-      return partialClass;
-    }
-
-    // Method 5: Any element with "claimable" in class
+    // Generic claimable
     const claimable = document.querySelector('[class*="claimable"]');
     if (claimable) {
-      log('[Method 4] Found via [class*="claimable"]');
+      log('[Found] [class*="claimable"]');
       return claimable;
     }
 
     return null;
   }
+
+  // Generate reward ID from button attributes (for dedup across tabs)
+  function getRewardId(btn) {
+    const attrs = [
+      btn.getAttribute('aria-label') || '',
+      btn.getAttribute('data-a-target') || '',
+      btn.className || ''
+    ].join('|');
+    return attrs.substring(0, 50);
+  }
+
+  let lastRewardId = null;
 
   function tryClaim() {
     if (!isEnabled) return false;
@@ -91,29 +103,45 @@
     if (now - lastClaimTime < CLAIM_COOLDOWN) return false;
 
     const btn = findClaimButton();
-    if (btn) {
-      // Verify button is visible
-      const rect = btn.getBoundingClientRect();
-      if (rect.width === 0 || rect.height === 0) {
-        log('[Skip] Button exists but not visible');
-        return false;
+    if (!btn) return false;
+
+    // Check visibility
+    const rect = btn.getBoundingClientRect();
+    if (rect.width === 0 || rect.height === 0) return false;
+
+    // Check if we already claimed this specific reward in another tab
+    const rewardId = getRewardId(btn);
+    if (rewardId === lastRewardId) {
+      log('[Skip] Same reward as last claim');
+      return false;
+    }
+
+    log(`[Claim] Clicking reward`);
+    const clicked = clickElement(btn);
+    if (clicked) {
+      lastClaimTime = now;
+      lastRewardId = rewardId;
+      claimedCount++;
+      log(`[SUCCESS] Claimed reward #${claimedCount}`);
+
+      // Broadcast to other tabs
+      if (channel) {
+        channel.postMessage({
+          type: 'CLAIMED',
+          channelId: myChannelId,
+          rewardId: rewardId,
+          timestamp: now
+        });
       }
 
-      log(`[Claim] Clicking: aria-label="${btn.getAttribute('aria-label') || 'none'}"`);
-      const clicked = clickElement(btn);
-      if (clicked) {
-        lastClaimTime = now;
-        claimedCount++;
-        log(`[SUCCESS] Claimed reward #${claimedCount}`);
-        browser.runtime.sendMessage({ type: 'CLAIMED', count: claimedCount }).catch(() => {});
-        try { localStorage.setItem('twitchAutoClaimerCount', claimedCount); } catch(e) {}
-        return true;
-      }
+      browser.runtime.sendMessage({ type: 'CLAIMED', count: claimedCount }).catch(() => {});
+      try { localStorage.setItem('twitchAutoClaimerCount', claimedCount); } catch(e) {}
+      return true;
     }
     return false;
   }
 
-  log('[Init] Twitch Auto Claimer v7 loaded');
+  log('[Init] Twitch Auto Claimer v8 loaded (tab:', myChannelId, ')');
 
   // Main observer
   const observer = new MutationObserver(() => {
@@ -121,11 +149,10 @@
   });
   observer.observe(document.body, { childList: true, subtree: true });
 
-  // Initial check
+  // Periodic check
   setTimeout(tryClaim, 2000);
   setInterval(tryClaim, 2000);
 
-  // Also scan on any click
   document.addEventListener('click', () => setTimeout(tryClaim, 100), true);
 
   log('[Ready] Watching for rewards...');
