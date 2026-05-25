@@ -1,4 +1,4 @@
-// Twitch Auto Claimer - Content Script v8
+// Twitch Auto Claimer - Content Script v10
 // Cross-tab coordination via BroadcastChannel API
 
 (function() {
@@ -72,6 +72,39 @@
     }
   }
 
+  // Find and close drops/activity overlay button if it's blocking the claim button
+  function closeDropsOverlay() {
+    // Twitch Drops button that can block the claim button
+    const dropsBtn = document.querySelector('[data-a-target="drops-button"]');
+    if (!dropsBtn) return false;
+
+    // Check if it's visible
+    const rect = dropsBtn.getBoundingClientRect();
+    if (rect.width === 0 || rect.height === 0) return false;
+
+    // Try to find and click a close/dismiss button inside or near the drops UI
+    // Look for close buttons within the drops container
+    const closeBtn = document.querySelector('[data-a-target="dropsismiss"], [aria-label="關閉"], [aria-label="dismiss"], [aria-label="close"]');
+    if (closeBtn) {
+      const closeRect = closeBtn.getBoundingClientRect();
+      if (closeRect.width > 0 && closeRect.height > 0) {
+        log('[Drops] Clicking close button');
+        clickElement(closeBtn);
+        return true;
+      }
+    }
+
+    // If the drops button itself can be clicked to dismiss/collapse it, try that
+    const dropsRect = dropsBtn.getBoundingClientRect();
+    if (dropsRect.width > 0 && dropsRect.height > 0) {
+      log('[Drops] Clicking drops button to collapse');
+      clickElement(dropsBtn);
+      return true;
+    }
+
+    return false;
+  }
+
   // Find claim button using Twitch's specific selectors
   function findClaimButton() {
     // Primary selector: aria-label
@@ -114,6 +147,9 @@
     if (!isEnabled) return false;
     const now = Date.now();
     if (now - lastClaimTime < CLAIM_COOLDOWN) return false;
+
+    // First, try to close any drops overlay that might be blocking the claim button
+    closeDropsOverlay();
 
     const btn = findClaimButton();
     if (!btn) return false;
