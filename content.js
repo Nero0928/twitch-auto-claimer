@@ -72,37 +72,57 @@
     }
   }
 
+  // Track if we've already tried to dismiss the drops overlay in this session
+  let dropsDismissAttempted = false;
+
   // Find and close drops/activity overlay button if it's blocking the claim button
-  function closeDropsOverlay() {
-    // Twitch Drops button that can block the claim button
+  function closeDropsOverlayIfBlocking(claimBtn) {
+    if (dropsDismissAttempted) return false;
+
     const dropsBtn = document.querySelector('[data-a-target="drops-button"]');
     if (!dropsBtn) return false;
 
-    // Check if it's visible
-    const rect = dropsBtn.getBoundingClientRect();
-    if (rect.width === 0 || rect.height === 0) return false;
+    // Check if drops button is visible
+    const dropsRect = dropsBtn.getBoundingClientRect();
+    if (dropsRect.width === 0 || dropsRect.height === 0) return false;
 
-    // Try to find and click a close/dismiss button inside or near the drops UI
-    // Look for close buttons within the drops container
-    const closeBtn = document.querySelector('[data-a-target="dropsismiss"], [aria-label="關閉"], [aria-label="dismiss"], [aria-label="close"]');
+    // Check if claim button exists and is being blocked by drops
+    if (!claimBtn) return false;
+    const claimRect = claimBtn.getBoundingClientRect();
+    if (claimRect.width === 0 || claimRect.height === 0) return false;
+
+    // Check if the drops button overlaps the claim button (blocking it)
+    const overlapping = !(
+      dropsRect.right < claimRect.left ||
+      dropsRect.left > claimRect.right ||
+      dropsRect.bottom < claimRect.top ||
+      dropsRect.top > claimRect.bottom
+    );
+
+    if (!overlapping) return false;
+
+    log('[Drops] Overlay detected as blocking, attempting to dismiss');
+
+    // Try to find a close/dismiss button inside the drops UI overlay
+    const closeBtn = document.querySelector(
+      '[data-a-target="dropsismiss"], [aria-label="關閉"], [aria-label="dismiss"], [aria-label="close"], [class*="close"]'
+    );
     if (closeBtn) {
       const closeRect = closeBtn.getBoundingClientRect();
       if (closeRect.width > 0 && closeRect.height > 0) {
-        log('[Drops] Clicking close button');
+        log('[Drops] Clicking close button inside overlay');
         clickElement(closeBtn);
+        dropsDismissAttempted = true;
         return true;
       }
     }
 
-    // If the drops button itself can be clicked to dismiss/collapse it, try that
-    const dropsRect = dropsBtn.getBoundingClientRect();
-    if (dropsRect.width > 0 && dropsRect.height > 0) {
-      log('[Drops] Clicking drops button to collapse');
-      clickElement(dropsBtn);
-      return true;
-    }
-
-    return false;
+    // No close button found — try clicking the drops button itself (it may be a toggle)
+    // Only do this if there's no separate close button
+    log('[Drops] No close button found, clicking drops button to collapse');
+    clickElement(dropsBtn);
+    dropsDismissAttempted = true;
+    return true;
   }
 
   // Find claim button using Twitch's specific selectors
@@ -149,7 +169,8 @@
     if (now - lastClaimTime < CLAIM_COOLDOWN) return false;
 
     // First, try to close any drops overlay that might be blocking the claim button
-    closeDropsOverlay();
+    // Only attempt once per page load to avoid infinite loops
+    closeDropsOverlayIfBlocking(btn);
 
     const btn = findClaimButton();
     if (!btn) return false;
