@@ -1,6 +1,7 @@
 // Twitch Auto Claimer - Popup Script
 
 let claimedCount = 0;
+let countEl = null;
 
 // Listen for claim updates from content script via BroadcastChannel (more reliable)
 const SYNC_CHANNEL = 'twitch-auto-claimer-popup-sync';
@@ -10,17 +11,36 @@ try {
     if (event.data.type === 'CLAIM') {
       claimedCount = event.data.count;
       localStorage.setItem('twitchAutoClaimerCount', String(claimedCount));
-      document.getElementById('claimCount').textContent = claimedCount;
+      // Update UI if element is ready
+      if (countEl) {
+        countEl.textContent = claimedCount;
+      } else {
+        // If DOM not ready yet, defer update via DOMContentLoaded
+        document.addEventListener('DOMContentLoaded', () => {
+          const el = document.getElementById('claimCount');
+          if (el) el.textContent = claimedCount;
+        }, { once: true });
+      }
     }
   };
 } catch(e) {
-  console.warn('[Twitch Auto Claimer] BroadcastChannel not supported');
+  console.warn('[Twitch Auto Claimer] BroadcastChannel not supported, falling back to runtime.onMessage');
+  browser.runtime.onMessage.addListener((message) => {
+    if (message.type === 'CLAIMED') {
+      claimedCount = message.count;
+      localStorage.setItem('twitchAutoClaimerCount', String(claimedCount));
+      if (countEl) {
+        countEl.textContent = claimedCount;
+      }
+    }
+  });
 }
 
 document.addEventListener('DOMContentLoaded', () => {
   const toggle = document.getElementById('toggleSwitch');
-  const countEl = document.getElementById('claimCount');
   const resetBtn = document.getElementById('resetBtn');
+
+  countEl = document.getElementById('claimCount');
 
   // Load saved state from localStorage
   const savedCount = localStorage.getItem('twitchAutoClaimerCount');
