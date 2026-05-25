@@ -1,4 +1,4 @@
-// Twitch Auto Claimer - Content Script v12
+// Twitch Auto Claimer - Content Script v14
 // Cross-tab coordination via BroadcastChannel API
 
 (function() {
@@ -109,6 +109,7 @@
   }
 
   let lastRewardId = null;
+  let claimedThisSession = false; // Track if we just claimed this specific button
 
   function tryClaim() {
     if (!isEnabled) return false;
@@ -116,16 +117,25 @@
     if (now - lastClaimTime < CLAIM_COOLDOWN) return false;
 
     const btn = findClaimButton();
-    if (!btn) return false;
+    if (!btn) {
+      // No claim button visible — clear the claimed-this-session flag so next reward doesn't get skipped
+      claimedThisSession = false;
+      return false;
+    }
 
     // Check visibility
     const rect = btn.getBoundingClientRect();
-    if (rect.width === 0 || rect.height === 0) return false;
+    if (rect.width === 0 || rect.height === 0) {
+      claimedThisSession = false;
+      return false;
+    }
 
-    // Check if we already claimed this specific reward in another tab
+    // Generate reward ID from button attributes
     const rewardId = getRewardId(btn);
-    if (rewardId === lastRewardId) {
-      log('[Skip] Same reward as last claim');
+
+    // Skip if we just claimed THIS specific button (don't skip different reward IDs)
+    if (claimedThisSession && rewardId === lastRewardId) {
+      log('[Skip] Same specific button as last claim (still on page)');
       return false;
     }
 
@@ -134,6 +144,7 @@
     if (clicked) {
       lastClaimTime = now;
       lastRewardId = rewardId;
+      claimedThisSession = true; // We just claimed this specific button
       claimedCount++;
       log(`[SUCCESS] Claimed reward #${claimedCount}`);
 
