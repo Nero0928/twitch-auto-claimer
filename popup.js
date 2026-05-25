@@ -2,6 +2,21 @@
 
 let claimedCount = 0;
 
+// Listen for claim updates from content script via BroadcastChannel (more reliable)
+const SYNC_CHANNEL = 'twitch-auto-claimer-popup-sync';
+try {
+  const syncChannel = new BroadcastChannel(SYNC_CHANNEL);
+  syncChannel.onmessage = (event) => {
+    if (event.data.type === 'CLAIM') {
+      claimedCount = event.data.count;
+      localStorage.setItem('twitchAutoClaimerCount', String(claimedCount));
+      document.getElementById('claimCount').textContent = claimedCount;
+    }
+  };
+} catch(e) {
+  console.warn('[Twitch Auto Claimer] BroadcastChannel not supported');
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   const toggle = document.getElementById('toggleSwitch');
   const countEl = document.getElementById('claimCount');
@@ -41,14 +56,12 @@ document.addEventListener('DOMContentLoaded', () => {
     claimedCount = 0;
     localStorage.setItem('twitchAutoClaimerCount', '0');
     countEl.textContent = '0';
-  });
 
-  // Listen for claim updates from content script
-  browser.runtime.onMessage.addListener((message) => {
-    if (message.type === 'CLAIMED') {
-      claimedCount = message.count;
-      localStorage.setItem('twitchAutoClaimerCount', String(claimedCount));
-      countEl.textContent = claimedCount;
-    }
+    // Notify content script to reset its in-memory counter
+    browser.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      if (tabs[0]?.id) {
+        browser.tabs.sendMessage(tabs[0].id, { type: 'RESET_COUNT' }).catch(() => {});
+      }
+    });
   });
 });

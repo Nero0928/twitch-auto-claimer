@@ -13,7 +13,16 @@
     if (DEBUG) console.log('[Twitch Auto Claimer]', ...args);
   }
 
-  // BroadcastChannel for cross-tab communication
+  // BroadcastChannel for cross-tab communication (popup ↔ content sync)
+  const SYNC_CHANNEL = 'twitch-auto-claimer-popup-sync';
+  let syncChannel;
+  try {
+    syncChannel = new BroadcastChannel(SYNC_CHANNEL);
+  } catch(e) {
+    log('[Sync] BroadcastChannel not supported');
+  }
+
+  // BroadcastChannel for cross-tab coordination (content ↔ content)
   let channel;
   try {
     channel = new BroadcastChannel(CHANNEL_NAME);
@@ -38,6 +47,10 @@
       isEnabled = message.enabled;
     } else if (message.type === 'GET_STATUS') {
       browser.runtime.sendMessage({ type: 'STATUS', enabled: isEnabled, claimed: claimedCount });
+    } else if (message.type === 'RESET_COUNT') {
+      claimedCount = 0;
+      lastRewardId = null;
+      try { localStorage.setItem('twitchAutoClaimerCount', '0'); } catch(e) {}
     }
   });
 
@@ -124,7 +137,7 @@
       claimedCount++;
       log(`[SUCCESS] Claimed reward #${claimedCount}`);
 
-      // Broadcast to other tabs
+      // Broadcast to other tabs (content ↔ content)
       if (channel) {
         channel.postMessage({
           type: 'CLAIMED',
@@ -134,7 +147,11 @@
         });
       }
 
-      browser.runtime.sendMessage({ type: 'CLAIMED', count: claimedCount }).catch(() => {});
+      // Broadcast to popup for real-time UI update
+      if (syncChannel) {
+        syncChannel.postMessage({ type: 'CLAIM', count: claimedCount });
+      }
+
       try { localStorage.setItem('twitchAutoClaimerCount', claimedCount); } catch(e) {}
       return true;
     }
