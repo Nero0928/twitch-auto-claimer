@@ -1,4 +1,4 @@
-// Twitch Auto Claimer - Content Script v8
+// Twitch Auto Claimer - Content Script v12
 // Cross-tab coordination via BroadcastChannel API
 
 (function() {
@@ -149,8 +149,12 @@
 
       // Broadcast to popup for real-time UI update
       if (popupSyncChannel) {
+        log('[PopupSync] Posting CLAIM message, count:', claimedCount);
         popupSyncChannel.postMessage({ type: 'CLAIM', count: claimedCount });
       }
+
+      // Also try runtime.sendMessage as backup
+      browser.runtime.sendMessage({ type: 'CLAIMED', count: claimedCount }).catch(() => {});
       try { localStorage.setItem('twitchAutoClaimerCount', claimedCount); } catch(e) {}
       return true;
     }

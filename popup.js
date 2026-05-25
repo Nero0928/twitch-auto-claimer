@@ -1,4 +1,4 @@
-// Twitch Auto Claimer - Popup Script
+// Twitch Auto Claimer - Popup Script v12
 
 let claimedCount = 0;
 let countEl = null;
@@ -8,6 +8,7 @@ const SYNC_CHANNEL = 'twitch-auto-claimer-popup-sync';
 try {
   const syncChannel = new BroadcastChannel(SYNC_CHANNEL);
   syncChannel.onmessage = (event) => {
+    console.log('[Twitch Auto Claimer] BroadcastChannel message received:', event.data);
     if (event.data.type === 'CLAIM') {
       claimedCount = event.data.count;
       localStorage.setItem('twitchAutoClaimerCount', String(claimedCount));
@@ -26,6 +27,7 @@ try {
 } catch(e) {
   console.warn('[Twitch Auto Claimer] BroadcastChannel not supported, falling back to runtime.onMessage');
   browser.runtime.onMessage.addListener((message) => {
+    console.log('[Twitch Auto Claimer] runtime.onMessage received:', message);
     if (message.type === 'CLAIMED') {
       claimedCount = message.count;
       localStorage.setItem('twitchAutoClaimerCount', String(claimedCount));
