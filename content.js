@@ -1,4 +1,4 @@
-// Twitch Auto Claimer - Content Script v10
+// Twitch Auto Claimer - Content Script v8
 // Cross-tab coordination via BroadcastChannel API
 
 (function() {
@@ -13,16 +13,7 @@
     if (DEBUG) console.log('[Twitch Auto Claimer]', ...args);
   }
 
-  // BroadcastChannel for cross-tab communication (popup ↔ content sync)
-  const SYNC_CHANNEL = 'twitch-auto-claimer-popup-sync';
-  let syncChannel;
-  try {
-    syncChannel = new BroadcastChannel(SYNC_CHANNEL);
-  } catch(e) {
-    log('[Sync] BroadcastChannel not supported');
-  }
-
-  // BroadcastChannel for cross-tab coordination (content ↔ content)
+  // BroadcastChannel for cross-tab communication
   let channel;
   try {
     channel = new BroadcastChannel(CHANNEL_NAME);
@@ -47,10 +38,6 @@
       isEnabled = message.enabled;
     } else if (message.type === 'GET_STATUS') {
       browser.runtime.sendMessage({ type: 'STATUS', enabled: isEnabled, claimed: claimedCount });
-    } else if (message.type === 'RESET_COUNT') {
-      claimedCount = 0;
-      lastRewardId = null;
-      try { localStorage.setItem('twitchAutoClaimerCount', '0'); } catch(e) {}
     }
   });
 
@@ -70,59 +57,6 @@
     } catch(e) {
       try { el.click(); return true; } catch(e2) { return false; }
     }
-  }
-
-  // Track if we've already tried to dismiss the drops overlay in this session
-  let dropsDismissAttempted = false;
-
-  // Find and close drops/activity overlay button if it's blocking the claim button
-  function closeDropsOverlayIfBlocking(claimBtn) {
-    if (dropsDismissAttempted) return false;
-
-    const dropsBtn = document.querySelector('[data-a-target="drops-button"]');
-    if (!dropsBtn) return false;
-
-    // Check if drops button is visible
-    const dropsRect = dropsBtn.getBoundingClientRect();
-    if (dropsRect.width === 0 || dropsRect.height === 0) return false;
-
-    // Check if claim button exists and is being blocked by drops
-    if (!claimBtn) return false;
-    const claimRect = claimBtn.getBoundingClientRect();
-    if (claimRect.width === 0 || claimRect.height === 0) return false;
-
-    // Check if the drops button overlaps the claim button (blocking it)
-    const overlapping = !(
-      dropsRect.right < claimRect.left ||
-      dropsRect.left > claimRect.right ||
-      dropsRect.bottom < claimRect.top ||
-      dropsRect.top > claimRect.bottom
-    );
-
-    if (!overlapping) return false;
-
-    log('[Drops] Overlay detected as blocking, attempting to dismiss');
-
-    // Try to find a close/dismiss button inside the drops UI overlay
-    const closeBtn = document.querySelector(
-      '[data-a-target="dropsismiss"], [aria-label="關閉"], [aria-label="dismiss"], [aria-label="close"], [class*="close"]'
-    );
-    if (closeBtn) {
-      const closeRect = closeBtn.getBoundingClientRect();
-      if (closeRect.width > 0 && closeRect.height > 0) {
-        log('[Drops] Clicking close button inside overlay');
-        clickElement(closeBtn);
-        dropsDismissAttempted = true;
-        return true;
-      }
-    }
-
-    // No close button found — try clicking the drops button itself (it may be a toggle)
-    // Only do this if there's no separate close button
-    log('[Drops] No close button found, clicking drops button to collapse');
-    clickElement(dropsBtn);
-    dropsDismissAttempted = true;
-    return true;
   }
 
   // Find claim button using Twitch's specific selectors
@@ -168,10 +102,6 @@
     const now = Date.now();
     if (now - lastClaimTime < CLAIM_COOLDOWN) return false;
 
-    // First, try to close any drops overlay that might be blocking the claim button
-    // Only attempt once per page load to avoid infinite loops
-    closeDropsOverlayIfBlocking(btn);
-
     const btn = findClaimButton();
     if (!btn) return false;
 
@@ -194,7 +124,7 @@
       claimedCount++;
       log(`[SUCCESS] Claimed reward #${claimedCount}`);
 
-      // Broadcast to other tabs (content ↔ content)
+      // Broadcast to other tabs
       if (channel) {
         channel.postMessage({
           type: 'CLAIMED',
@@ -204,11 +134,7 @@
         });
       }
 
-      // Broadcast to popup for real-time UI update
-      if (syncChannel) {
-        syncChannel.postMessage({ type: 'CLAIM', count: claimedCount });
-      }
-
+      browser.runtime.sendMessage({ type: 'CLAIMED', count: claimedCount }).catch(() => {});
       try { localStorage.setItem('twitchAutoClaimerCount', claimedCount); } catch(e) {}
       return true;
     }
