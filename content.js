@@ -158,14 +158,19 @@
         });
       }
 
-      // Broadcast to popup for real-time UI update
+      // Broadcast to popup via BroadcastChannel for real-time UI update
       if (popupSyncChannel) {
         log('[PopupSync] Posting CLAIM message, count:', claimedCount);
         popupSyncChannel.postMessage({ type: 'CLAIM', count: claimedCount });
       }
 
-      // Also try runtime.sendMessage as backup
-      browser.runtime.sendMessage({ type: 'CLAIMED', count: claimedCount }).catch(() => {});
+      // Also send to background service worker (more reliable popup ↔ content bridge)
+      browser.runtime.sendMessage({ type: 'CLAIM', count: claimedCount }).then(() => {
+        log('[BG] Count update sent to background');
+      }).catch(() => {
+        log('[BG] Failed to send to background');
+      });
+
       try { localStorage.setItem('twitchAutoClaimerCount', claimedCount); } catch(e) {}
       return true;
     }

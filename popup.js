@@ -1,9 +1,30 @@
-// Twitch Auto Claimer - Popup Script v12
+// Twitch Auto Claimer - Popup Script v14
 
 let claimedCount = 0;
 let countEl = null;
 
-// Listen for claim updates from content script via BroadcastChannel (more reliable)
+// Request current count from background service worker when popup opens
+browser.runtime.sendMessage({ type: 'GET_COUNT' }).then((response) => {
+  if (response && typeof response.count === 'number') {
+    claimedCount = response.count;
+    if (countEl) countEl.textContent = claimedCount;
+  }
+}).catch(() => {});
+
+// Listen for claim updates from background service worker
+browser.runtime.onMessage.addListener((message) => {
+  console.log('[Twitch Auto Claimer] runtime.onMessage received:', message);
+  if (message.type === 'CLAIMED' || message.type === 'CLAIM') {
+    const newCount = message.count || message;
+    claimedCount = newCount;
+    localStorage.setItem('twitchAutoClaimerCount', String(claimedCount));
+    if (countEl) {
+      countEl.textContent = claimedCount;
+    }
+  }
+});
+
+// Listen for claim updates via BroadcastChannel (backup)
 const SYNC_CHANNEL = 'twitch-auto-claimer-popup-sync';
 try {
   const syncChannel = new BroadcastChannel(SYNC_CHANNEL);
@@ -12,30 +33,13 @@ try {
     if (event.data.type === 'CLAIM') {
       claimedCount = event.data.count;
       localStorage.setItem('twitchAutoClaimerCount', String(claimedCount));
-      // Update UI if element is ready
       if (countEl) {
         countEl.textContent = claimedCount;
-      } else {
-        // If DOM not ready yet, defer update via DOMContentLoaded
-        document.addEventListener('DOMContentLoaded', () => {
-          const el = document.getElementById('claimCount');
-          if (el) el.textContent = claimedCount;
-        }, { once: true });
       }
     }
   };
 } catch(e) {
-  console.warn('[Twitch Auto Claimer] BroadcastChannel not supported, falling back to runtime.onMessage');
-  browser.runtime.onMessage.addListener((message) => {
-    console.log('[Twitch Auto Claimer] runtime.onMessage received:', message);
-    if (message.type === 'CLAIMED') {
-      claimedCount = message.count;
-      localStorage.setItem('twitchAutoClaimerCount', String(claimedCount));
-      if (countEl) {
-        countEl.textContent = claimedCount;
-      }
-    }
-  });
+  console.warn('[Twitch Auto Claimer] BroadcastChannel not supported');
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -85,5 +89,8 @@ document.addEventListener('DOMContentLoaded', () => {
         browser.tabs.sendMessage(tabs[0].id, { type: 'RESET_COUNT' }).catch(() => {});
       }
     });
+
+    // Also reset via background
+    browser.runtime.sendMessage({ type: 'RESET_COUNT' }).catch(() => {});
   });
 });
