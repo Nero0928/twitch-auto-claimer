@@ -10,17 +10,16 @@
     }
     body {
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      width: 300px;
+      width: 320px;
       padding: 0;
       background: #0d0d0f;
       color: #f5f5f5;
-      overflow: hidden;
+      overflow-x: hidden;
     }
 
-    /* Header with gradient */
     .header {
       background: linear-gradient(135deg, #1a1a1f 0%, #0d0d0f 100%);
-      padding: 16px 16px 14px;
+      padding: 14px 16px 12px;
       border-bottom: 1px solid rgba(255, 169, 77, 0.15);
       position: relative;
     }
@@ -49,19 +48,19 @@
     }
 
     .logo {
-      width: 32px;
-      height: 32px;
+      width: 30px;
+      height: 30px;
       background: linear-gradient(135deg, #ff9a4d 0%, #ff6b35 100%);
-      border-radius: 8px;
+      border-radius: 7px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 16px;
+      font-size: 15px;
       box-shadow: 0 2px 8px rgba(255, 107, 53, 0.3);
     }
 
     h1 {
-      font-size: 17px;
+      font-size: 16px;
       font-weight: 700;
       background: linear-gradient(90deg, #ff9a4d, #ffb347);
       -webkit-background-clip: text;
@@ -70,7 +69,6 @@
       letter-spacing: -0.3px;
     }
 
-    /* Language toggle */
     .lang-toggle {
       display: flex;
       background: #1a1a1f;
@@ -80,8 +78,8 @@
     }
 
     .lang-btn {
-      padding: 5px 10px;
-      font-size: 11px;
+      padding: 4px 9px;
+      font-size: 10px;
       font-weight: 600;
       border: none;
       border-radius: 4px;
@@ -102,35 +100,33 @@
     }
 
     .tagline {
-      font-size: 11px;
+      font-size: 10px;
       color: #666;
-      margin-left: 42px;
+      margin-left: 40px;
     }
 
-    /* Main content */
     .content {
-      padding: 18px;
+      padding: 14px;
     }
 
-    /* Status card */
     .status-card {
       background: linear-gradient(145deg, #1a1a1f 0%, #151518 100%);
       border: 1px solid rgba(255, 169, 77, 0.1);
-      border-radius: 12px;
-      padding: 16px;
-      margin-bottom: 14px;
+      border-radius: 10px;
+      padding: 14px;
+      margin-bottom: 12px;
     }
 
     .status-header {
       display: flex;
       align-items: center;
       gap: 8px;
-      margin-bottom: 14px;
+      margin-bottom: 12px;
     }
 
     .status-dot {
-      width: 8px;
-      height: 8px;
+      width: 7px;
+      height: 7px;
       border-radius: 50%;
       background: #333;
       transition: all 0.3s ease;
@@ -148,13 +144,12 @@
     }
 
     .status-text {
-      font-size: 12px;
+      font-size: 11px;
       color: #888;
       text-transform: uppercase;
       letter-spacing: 0.5px;
     }
 
-    /* Toggle row */
     .toggle-row {
       display: flex;
       align-items: center;
@@ -168,20 +163,20 @@
     }
 
     .toggle-title {
-      font-size: 14px;
+      font-size: 13px;
       font-weight: 600;
       color: #f5f5f5;
     }
 
     .toggle-desc {
-      font-size: 11px;
+      font-size: 10px;
       color: #555;
     }
 
     .toggle {
       position: relative;
-      width: 48px;
-      height: 28px;
+      width: 44px;
+      height: 26px;
       flex-shrink: 0;
     }
 
@@ -199,7 +194,7 @@
       right: 0;
       bottom: 0;
       background: #2a2a2f;
-      border-radius: 28px;
+      border-radius: 26px;
       transition: 0.3s;
       border: 1px solid #333;
     }
@@ -207,8 +202,8 @@
     .toggle-slider::before {
       position: absolute;
       content: '';
-      height: 22px;
-      width: 22px;
+      height: 20px;
+      width: 20px;
       left: 2px;
       bottom: 2px;
       background: #555;
@@ -223,37 +218,103 @@
     }
 
     .toggle input:checked + .toggle-slider::before {
-      transform: translateX(20px);
+      transform: translateX(18px);
       background: #fff;
     }
 
-    /* Info section */
-    .info-section {
-      background: rgba(255, 169, 77, 0.05);
+    .stats-card {
+      background: linear-gradient(145deg, #1a1a1f 0%, #151518 100%);
       border: 1px solid rgba(255, 169, 77, 0.1);
       border-radius: 10px;
       padding: 14px;
-      margin-bottom: 14px;
+      margin-bottom: 12px;
     }
 
-    .info-title {
+    .stats-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+
+    .stats-title {
       font-size: 11px;
       color: #ff9a4d;
       text-transform: uppercase;
       letter-spacing: 0.5px;
-      margin-bottom: 8px;
       font-weight: 600;
     }
 
-    .info-text {
-      font-size: 12px;
-      color: #888;
-      line-height: 1.5;
+    .total-badge {
+      background: rgba(255, 169, 77, 0.15);
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 11px;
+      color: #ff9a4d;
+      font-weight: 600;
     }
 
-    /* Footer */
+    .total-badge span {
+      font-size: 13px;
+    }
+
+    .channel-list {
+      max-height: 180px;
+      overflow-y: auto;
+    }
+
+    .channel-list::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    .channel-list::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .channel-list::-webkit-scrollbar-thumb {
+      background: #333;
+      border-radius: 2px;
+    }
+
+    .channel-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 10px;
+      background: rgba(255, 255, 255, 0.02);
+      border-radius: 6px;
+      margin-bottom: 6px;
+    }
+
+    .channel-item:last-child {
+      margin-bottom: 0;
+    }
+
+    .channel-name {
+      font-size: 12px;
+      color: #ccc;
+      font-weight: 500;
+    }
+
+    .channel-count {
+      font-size: 12px;
+      color: #888;
+    }
+
+    .channel-count span {
+      color: #ff9a4d;
+      font-weight: 600;
+    }
+
+    .no-data {
+      text-align: center;
+      padding: 20px;
+      color: #444;
+      font-size: 12px;
+    }
+
     .footer {
-      padding: 14px 18px;
+      padding: 12px 14px;
       border-top: 1px solid rgba(255, 255, 255, 0.05);
       display: flex;
       align-items: center;
@@ -261,7 +322,7 @@
     }
 
     .footer-text {
-      font-size: 11px;
+      font-size: 10px;
       color: #444;
     }
 
@@ -270,10 +331,10 @@
     }
 
     .version {
-      font-size: 10px;
+      font-size: 9px;
       color: #333;
       background: #1a1a1f;
-      padding: 4px 8px;
+      padding: 3px 7px;
       border-radius: 4px;
     }
   </style>
@@ -290,19 +351,19 @@
         <button class="lang-btn active" data-lang="en">EN</button>
       </div>
     </div>
-    <p class="tagline" data-i18n="tagline">懶人必備・自動領獎</p>
+    <p class="tagline" data-i18n="tagline">Auto claim Twitch rewards</p>
   </div>
 
   <div class="content">
     <div class="status-card">
       <div class="status-header">
         <div class="status-dot" id="statusDot"></div>
-        <span class="status-text" id="statusText" data-i18n="status.waiting">等待中</span>
+        <span class="status-text" id="statusText" data-i18n="status_waiting">Waiting</span>
       </div>
       <div class="toggle-row">
         <div class="toggle-label">
-          <span class="toggle-title" data-i18n="toggle.title">自動領取</span>
-          <span class="toggle-desc" data-i18n="toggle.desc">偵測到獎勵時自動點擊</span>
+          <span class="toggle-title" data-i18n="toggle_title">Auto-claim</span>
+          <span class="toggle-desc" data-i18n="toggle_desc">Automatically click when reward appears</span>
         </div>
         <label class="toggle">
           <input type="checkbox" id="toggleSwitch" checked>
@@ -311,15 +372,22 @@
       </div>
     </div>
 
-    <div class="info-section">
-      <div class="info-title" data-i18n="info.title">使用提示</div>
-      <p class="info-text" data-i18n="info.text">開啟開關後，獎勵按鈕出現時會自動點擊領取。懶人必備！</p>
+    <div class="stats-card">
+      <div class="stats-header">
+        <span class="stats-title" data-i18n="channel_stats_title">Channel Stats</span>
+        <div class="total-badge">
+          <span id="totalCount">0</span> <span data-i18n="claims">claims</span>
+        </div>
+      </div>
+      <div class="channel-list" id="channelList">
+        <div class="no-data" data-i18n="no_channels">No claims yet</div>
+      </div>
     </div>
   </div>
 
   <div class="footer">
     <span class="footer-text">Made with <span>♥</span> by 狐狐</span>
-    <span class="version">v17</span>
+    <span class="version">v1.0.0</span>
   </div>
 
   <script src="popup.js"></script>

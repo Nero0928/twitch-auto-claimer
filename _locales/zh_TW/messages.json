@@ -1,0 +1,58 @@
+{
+  "extension_name": {
+    "message": "Twitch Auto Claimer",
+    "description": "Extension name"
+  },
+  "extension_description": {
+    "message": "自動領取 Twitch 頻道點數獎勵",
+    "description": "Extension description"
+  },
+  "tagline": {
+    "message": "懶人必備・自動領獎",
+    "description": "Tagline under title"
+  },
+  "status_waiting": {
+    "message": "等待中",
+    "description": "Status when not monitoring"
+  },
+  "status_active": {
+    "message": "監控中",
+    "description": "Status when monitoring"
+  },
+  "status_paused": {
+    "message": "已暫停",
+    "description": "Status when disabled"
+  },
+  "toggle_title": {
+    "message": "自動領取",
+    "description": "Toggle switch title"
+  },
+  "toggle_desc": {
+    "message": "偵測到獎勵時自動點擊",
+    "description": "Toggle switch description"
+  },
+  "info_title": {
+    "message": "使用提示",
+    "description": "Info section title"
+  },
+  "info_text": {
+    "message": "開啟開關後，獎勵按鈕出現時會自動點擊領取。懶人必備！",
+    "description": "Info section text"
+  },
+  "channel_stats_title": {
+    "message": "頻道統計",
+    "description": "Per-channel stats section title"
+  },
+  "total_claims": {
+    "message": "總計領取",
+    "description": "Total claims label"
+  },
+  "no_channels": {
+    "message": "還沒有任何記錄",
+    "description": "Shown when no channels have been tracked"
+  },
+  "claims": {
+    "message": "次",
+    "description": "Claims count suffix"
+  }
+}

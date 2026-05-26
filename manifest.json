@@ -1,9 +1,10 @@
 {
   "manifest_version": 3,
   "name": "Twitch Auto Claimer",
-  "version": "1.0.1",
-  "description": "Automatically claims Twitch channel points rewards when they appear",
-  "permissions": ["activeTab", "storage"],
+  "version": "1.0.0",
+  "description": "__MSG_description__",
+  "default_locale": "en",
+  "permissions": ["storage", "activeTab"],
   "host_permissions": ["*://*.twitch.tv/*"],
   "background": {
     "service_worker": "background.js"
