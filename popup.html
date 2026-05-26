@@ -20,7 +20,7 @@
     /* Header with gradient */
     .header {
       background: linear-gradient(135deg, #1a1a1f 0%, #0d0d0f 100%);
-      padding: 20px 20px 16px;
+      padding: 16px 16px 14px;
       border-bottom: 1px solid rgba(255, 169, 77, 0.15);
       position: relative;
     }
@@ -38,8 +38,14 @@
     .title-row {
       display: flex;
       align-items: center;
-      gap: 10px;
+      justify-content: space-between;
       margin-bottom: 4px;
+    }
+
+    .title-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
     }
 
     .logo {
@@ -64,6 +70,37 @@
       letter-spacing: -0.3px;
     }
 
+    /* Language toggle */
+    .lang-toggle {
+      display: flex;
+      background: #1a1a1f;
+      border-radius: 6px;
+      padding: 3px;
+      gap: 2px;
+    }
+
+    .lang-btn {
+      padding: 5px 10px;
+      font-size: 11px;
+      font-weight: 600;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      background: transparent;
+      color: #555;
+    }
+
+    .lang-btn.active {
+      background: linear-gradient(135deg, #ff9a4d 0%, #ff6b35 100%);
+      color: #fff;
+      box-shadow: 0 2px 6px rgba(255, 107, 53, 0.3);
+    }
+
+    .lang-btn:not(.active):hover {
+      color: #888;
+    }
+
     .tagline {
       font-size: 11px;
       color: #666;
@@ -72,7 +109,7 @@
 
     /* Main content */
     .content {
-      padding: 20px;
+      padding: 18px;
     }
 
     /* Status card */
@@ -81,14 +118,14 @@
       border: 1px solid rgba(255, 169, 77, 0.1);
       border-radius: 12px;
       padding: 16px;
-      margin-bottom: 16px;
+      margin-bottom: 14px;
     }
 
     .status-header {
       display: flex;
       align-items: center;
       gap: 8px;
-      margin-bottom: 12px;
+      margin-bottom: 14px;
     }
 
     .status-dot {
@@ -196,7 +233,7 @@
       border: 1px solid rgba(255, 169, 77, 0.1);
       border-radius: 10px;
       padding: 14px;
-      margin-bottom: 16px;
+      margin-bottom: 14px;
     }
 
     .info-title {
@@ -216,7 +253,7 @@
 
     /* Footer */
     .footer {
-      padding: 14px 20px;
+      padding: 14px 18px;
       border-top: 1px solid rgba(255, 255, 255, 0.05);
       display: flex;
       align-items: center;
@@ -244,22 +281,28 @@
 <body>
   <div class="header">
     <div class="title-row">
-      <div class="logo">🦊</div>
-      <h1>Twitch Auto Claimer</h1>
+      <div class="title-left">
+        <div class="logo">🦊</div>
+        <h1>Twitch Auto Claimer</h1>
+      </div>
+      <div class="lang-toggle">
+        <button class="lang-btn" data-lang="zh">中</button>
+        <button class="lang-btn active" data-lang="en">EN</button>
+      </div>
     </div>
-    <p class="tagline">懶人必備・自動領獎</p>
+    <p class="tagline" data-i18n="tagline">懶人必備・自動領獎</p>
   </div>
 
   <div class="content">
     <div class="status-card">
       <div class="status-header">
         <div class="status-dot" id="statusDot"></div>
-        <span class="status-text" id="statusText">等待中</span>
+        <span class="status-text" id="statusText" data-i18n="status.waiting">等待中</span>
       </div>
       <div class="toggle-row">
         <div class="toggle-label">
-          <span class="toggle-title">自動領取</span>
-          <span class="toggle-desc">偵測到獎勵時自動點擊</span>
+          <span class="toggle-title" data-i18n="toggle.title">自動領取</span>
+          <span class="toggle-desc" data-i18n="toggle.desc">偵測到獎勵時自動點擊</span>
         </div>
         <label class="toggle">
           <input type="checkbox" id="toggleSwitch" checked>
@@ -269,16 +312,14 @@
     </div>
 
     <div class="info-section">
-      <div class="info-title">使用提示</div>
-      <p class="info-text">
-        開啟開關後，獎勵按鈕出現時會自動點擊領取。懶人必備！
-      </p>
+      <div class="info-title" data-i18n="info.title">使用提示</div>
+      <p class="info-text" data-i18n="info.text">開啟開關後，獎勵按鈕出現時會自動點擊領取。懶人必備！</p>
     </div>
   </div>
 
   <div class="footer">
     <span class="footer-text">Made with <span>♥</span> by 狐狐</span>
-    <span class="version">v15</span>
+    <span class="version">v17</span>
   </div>
 
   <script src="popup.js"></script>
