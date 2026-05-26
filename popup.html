@@ -374,6 +374,54 @@
       font-size: 12px;
     }
 
+    /* Donate section */
+    .donate-section {
+      background: linear-gradient(145deg, #1a1a1f 0%, #151518 100%);
+      border: 1px solid rgba(255, 169, 77, 0.1);
+      border-radius: 10px;
+      padding: 14px;
+      margin-bottom: 12px;
+      text-align: center;
+    }
+
+    .donate-title {
+      font-size: 11px;
+      color: #888;
+      margin-bottom: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .donate-buttons {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+    }
+
+    .btn-donate {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 20px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all 0.2s;
+      cursor: pointer;
+      border: none;
+    }
+
+    .btn-paypal {
+      background: #0070ba;
+      color: #fff;
+    }
+
+    .btn-paypal:hover {
+      background: #005ea6;
+      transform: translateY(-1px);
+    }
+
     .footer {
       padding: 12px 14px;
       border-top: 1px solid rgba(255, 255, 255, 0.05);
@@ -445,6 +493,15 @@
       </div>
       <div class="channel-list" id="channelList">
         <div class="no-data" data-i18n="no_channels">No claims yet</div>
+      </div>
+    </div>
+
+    <div class="donate-section">
+      <div class="donate-title" data-i18n="donate_title">Support Development</div>
+      <div class="donate-buttons">
+        <a class="btn-donate btn-paypal" href="https://paypal.me/Nero0928Nero0928" target="_blank">
+          💙 PayPal
+        </a>
       </div>
     </div>
   </div>
