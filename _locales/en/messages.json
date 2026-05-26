@@ -4,7 +4,55 @@
     "description": "Extension name"
   },
   "description": {
-    "message": "Automatically claim Twitch channel points rewards when they appear. Supports per-channel tracking with stats.",
-    "description": "Extension description for Chrome Web Store"
+    "message": "Automatically claims Twitch channel points rewards when they appear",
+    "description": "Extension description"
+  },
+  "tagline": {
+    "message": "Auto claim Twitch rewards",
+    "description": "Tagline under title"
+  },
+  "status_waiting": {
+    "message": "Waiting",
+    "description": "Status when not monitoring"
+  },
+  "status_active": {
+    "message": "Active",
+    "description": "Status when monitoring"
+  },
+  "status_paused": {
+    "message": "Paused",
+    "description": "Status when disabled"
+  },
+  "toggle_title": {
+    "message": "Auto-claim",
+    "description": "Toggle switch title"
+  },
+  "toggle_desc": {
+    "message": "Automatically click when reward appears",
+    "description": "Toggle switch description"
+  },
+  "info_title": {
+    "message": "Tip",
+    "description": "Info section title"
+  },
+  "info_text": {
+    "message": "Turn on the switch and rewards will be claimed automatically when they appear.",
+    "description": "Info section text"
+  },
+  "channel_stats_title": {
+    "message": "Channel Stats",
+    "description": "Per-channel stats section title"
+  },
+  "total_claims": {
+    "message": "Total Claims",
+    "description": "Total claims label"
+  },
+  "no_channels": {
+    "message": "No claims yet",
+    "description": "Shown when no channels have been tracked"
+  },
+  "claims": {
+    "message": "claims",
+    "description": "Claims count suffix"
   }
 }

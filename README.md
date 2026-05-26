@@ -1,49 +1,60 @@
-# Twitch Auto Claimer 🦊
+# Twitch Auto Claimer
 
 A browser extension that automatically claims Twitch channel points rewards when they appear.
 
-[Chrome Web Store](https://chrome.google.com/webstore/detail/twitch-auto-claimer) | [GitHub](https://github.com/Nero0928/twitch-auto-claimer)
-
 ## Features
 
-- 🔄 **Auto-claim** - Automatically click when reward button appears
-- 📊 **Per-channel Stats** - Track how many rewards you've claimed on each channel
-- 🌍 **Bilingual** - Supports English and Traditional Chinese
-- 🌙 **Dark Theme** - Beautiful fox-inspired design
-- ☕ **Support Development** - Donate via Ko-fi or PayPal
+- 🎯 Auto-claim channel points rewards automatically
+- 🔘 Simple toggle on/off control
+- 📊 Shows count of claimed rewards
+- 🌙 Dark mode UI matching Twitch's aesthetic
 
 ## Installation
 
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/Nero0928/twitch-auto-claimer.git
-   ```
-2. Open `chrome://extensions/`
-3. Enable "Developer mode" (top right)
-4. Click "Load unpacked" and select the `twitch-auto-claimer` folder
+### Chrome / Edge (Chromium-based)
+
+1. Download or clone this repository
+2. Open `chrome://extensions/` (Edge: `edge://extensions/`)
+3. Enable **Developer mode** (toggle in top right)
+4. Click **Load unpacked**
+5. Select the `twitch-auto-claimer` folder
+
+### Firefox
+
+1. Download or clone this repository
+2. Open `about:debugging#/runtime/this-firefox`
+3. Click **Load Temporary Add-on**
+4. Select the `manifest.json` file
 
 ## Usage
 
-1. Click the extension icon on any Twitch page
-2. Make sure "Auto-claim" is enabled
-3. Visit Twitch channels - rewards will be claimed automatically!
-4. View your stats by clicking the extension icon
+1. Open Twitch and go to any live stream
+2. Click the extension icon in your browser toolbar
+3. Toggle **Auto-claim** ON
+4. Rewards will be claimed automatically when they appear
 
-## Building for Chrome Web Store
+## Files Structure
 
-See [STORE.md](STORE.md) for publishing instructions.
+```
+twitch-auto-claimer/
+├── manifest.json     # Extension configuration
+├── content.js        # Injected script for reward detection
+├── popup.html        # Extension popup UI
+├── popup.js          # Popup functionality
+├── icons/            # Extension icons
+└── README.md         # This file
+```
 
-## Tech Stack
+## How It Works
 
-- Manifest V3
-- Vanilla JavaScript (no frameworks)
-- Chrome Storage API
-- Native i18n (Chrome _locales)
+- The extension uses a `MutationObserver` to watch for new DOM elements on Twitch
+- When a reward notification appears, it automatically clicks the claim button
+- State is persisted in localStorage
 
-## License
+## Privacy
 
-MIT
+This extension only runs on Twitch pages and does not collect or transmit any personal data.
 
 ---
 
-Made with ♥ by [狐狐](https://github.com/Nero0928)
+Built with 🦊 by 狐狐

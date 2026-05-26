@@ -21,8 +21,7 @@ const translations = {
     claimed_count: 'Claimed',
     clear_record: 'Action',
     total: 'Total',
-    points: 'pts',
-    donate_title: 'Support Development'
+    points: 'pts'
   },
   zh: {
     tagline: '懶人必備・自動領獎',
@@ -40,8 +39,7 @@ const translations = {
     claimed_count: '領取次數',
     clear_record: '操作',
     total: '總計',
-    points: '點',
-    donate_title: '支持開發'
+    points: '點'
   }
 };
 
