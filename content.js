@@ -33,7 +33,6 @@ function getButtonByAriaLabel() {
     "领取奖励",
     "ボーナスを受け取る",
     "보너스 받기",
-    // Add more languages as needed
   ];
 
   for (const label of labels) {
@@ -48,53 +47,13 @@ function findClaimButton() {
   const byAria = getButtonByAriaLabel();
   if (byAria) return byAria;
 
-  // Fallback: class-based
+  // Fallback: class-based (same as reference project)
   const byClass = document.querySelector('.ScCoreButtonSuccess-sc-1qn4ixc-5')
     || document.querySelector('.VGQNd')
     || document.querySelector('.claimable-bonus__icon')?.parentElement?.parentElement?.parentElement;
   if (byClass) return byClass;
 
   return null;
-}
-
-function clickButton(button) {
-  if (!button) return false;
-
-  try {
-    button.focus();
-    const rect = button.getBoundingClientRect();
-    const cx = rect.left + rect.width / 2;
-    const cy = rect.top + rect.height / 2;
-
-    ['mousedown', 'mouseup', 'click'].forEach(type => {
-      button.dispatchEvent(new MouseEvent(type, {
-        bubbles: true,
-        cancelable: true,
-        view: window,
-        clientX: cx,
-        clientY: cy
-      }));
-    });
-    return true;
-  } catch (e) {
-    try {
-      button.click();
-      return true;
-    } catch (e2) {
-      return false;
-    }
-  }
-}
-
-function recordClaim(channelName) {
-  chrome.storage.local.get(STORAGE_KEY, (result) => {
-    let data = result[STORAGE_KEY] || {};
-    if (!data[channelName]) {
-      data[channelName] = 0;
-    }
-    data[channelName]++;
-    chrome.storage.local.set({ [STORAGE_KEY]: data }, () => {});
-  });
 }
 
 function tryClaim() {
@@ -104,17 +63,28 @@ function tryClaim() {
   const button = findClaimButton();
   if (!button) return;
 
-  // Only click if it's actually a button element or has clickable parent
+  // Verify button is visible
+  const rect = button.getBoundingClientRect();
+  if (!rect || rect.width === 0 || rect.height === 0) return;
+
+  // Get the right click target (same logic as reference)
   let clickTarget = button;
   if (button.nodeName !== 'BUTTON') {
     clickTarget = button.closest('button') || button;
   }
 
-  if (clickButton(clickTarget)) {
-    const channelName = getChannelName();
-    recordClaim(channelName);
-    console.log(`[Twitch Auto Claimer] Claimed on ${channelName}`);
-  }
+  // Click like reference project does - simple .click()
+  clickTarget.click();
+
+  // Record immediately after click
+  const channelName = getChannelName();
+  chrome.storage.local.get(STORAGE_KEY, (result) => {
+    let data = result[STORAGE_KEY] || {};
+    data[channelName] = (data[channelName] || 0) + 1;
+    chrome.storage.local.set({ [STORAGE_KEY]: data }, () => {
+      console.log(`[Twitch Auto Claimer] Claim recorded for ${channelName}: ${data[channelName]}`);
+    });
+  });
 }
 
 // Main loop - same as reference project
