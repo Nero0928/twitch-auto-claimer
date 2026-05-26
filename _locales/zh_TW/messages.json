@@ -3,7 +3,7 @@
     "message": "Twitch Auto Claimer",
     "description": "Extension name"
   },
-  "extension_description": {
+  "description": {
     "message": "自動領取 Twitch 頻道點數獎勵",
     "description": "Extension description"
   },

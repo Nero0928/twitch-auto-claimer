@@ -3,7 +3,7 @@
     "message": "Twitch Auto Claimer",
     "description": "Extension name"
   },
-  "extension_description": {
+  "description": {
     "message": "Automatically claims Twitch channel points rewards when they appear",
     "description": "Extension description"
   },
