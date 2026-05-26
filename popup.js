@@ -1,5 +1,7 @@
-// Twitch Auto Claimer - Popup Script v17
-// Per-channel stats display with i18n support
+// Twitch Auto Claimer - Popup Script v18
+// Direct storage reading (like reference project)
+
+const STORAGE_KEY = 'twitchAutoClaimerChannelData';
 
 // Translations
 const translations = {
@@ -13,7 +15,13 @@ const translations = {
     channel_stats_title: 'Channel Stats',
     no_channels: 'No claims yet',
     claims: 'claims',
-    total: 'Total'
+    clear: 'Clear',
+    clear_all: 'Clear All',
+    channel: 'Channel',
+    claimed_count: 'Claimed',
+    clear_record: 'Action',
+    total: 'Total',
+    points: 'pts'
   },
   zh: {
     tagline: '懶人必備・自動領獎',
@@ -25,7 +33,13 @@ const translations = {
     channel_stats_title: '頻道統計',
     no_channels: '還沒有任何記錄',
     claims: '次',
-    total: '總計'
+    clear: '清除',
+    clear_all: '清除全部',
+    channel: '頻道',
+    claimed_count: '領取次數',
+    clear_record: '操作',
+    total: '總計',
+    points: '點'
   }
 };
 
@@ -48,8 +62,7 @@ function setLanguage(lang) {
     btn.classList.toggle('active', btn.getAttribute('data-lang') === lang);
   });
 
-  updateStatus(document.getElementById('toggleSwitch').checked);
-  renderChannelList();
+  renderStats();
 }
 
 function updateStatus(enabled) {
@@ -65,21 +78,13 @@ function updateStatus(enabled) {
   }
 }
 
-function getChannelData() {
-  return new Promise((resolve) => {
-    browser.runtime.sendMessage({ type: 'GET_DATA' }).then((response) => {
-      resolve(response?.channelData || {});
-    }).catch(() => resolve({}));
-  });
-}
+function renderStats() {
+  chrome.storage.local.get(STORAGE_KEY, (result) => {
+    const data = result[STORAGE_KEY] || {};
+    const channelList = document.getElementById('channelList');
+    const totalCount = document.getElementById('totalCount');
 
-function renderChannelList() {
-  const channelList = document.getElementById('channelList');
-  const totalCount = document.getElementById('totalCount');
-
-  getChannelData().then((data) => {
     const channels = Object.keys(data);
-    let total = 0;
 
     if (channels.length === 0) {
       channelList.innerHTML = `<div class="no-data" data-i18n="no_channels">${t('no_channels')}</div>`;
@@ -87,23 +92,47 @@ function renderChannelList() {
       return;
     }
 
+    // Calculate total
+    let total = 0;
+    channels.forEach(ch => total += data[ch]);
+
     // Sort by count descending
-    channels.sort((a, b) => (data[b].count || 0) - (data[a].count || 0));
+    channels.sort((a, b) => data[b] - data[a]);
 
     let html = '';
     channels.forEach((channel) => {
-      const count = data[channel].count || 0;
-      total += count;
+      const count = data[channel];
+      const points = count * 50;
       html += `
         <div class="channel-item">
-          <span class="channel-name">${escapeHtml(channel)}</span>
-          <span class="channel-count"><span>${count}</span> ${t('claims')}</span>
+          <div class="channel-info">
+            <a class="channel-name" href="https://www.twitch.tv/${channel}" target="_blank">${escapeHtml(channel)}</a>
+            <span class="channel-points">${points} ${t('points')}</span>
+          </div>
+          <div class="channel-actions">
+            <span class="channel-count"><span>${count}</span> ${t('claims')}</span>
+            <button class="btn-clear" data-channel="${escapeHtml(channel)}">${t('clear')}</button>
+          </div>
         </div>
       `;
     });
 
     channelList.innerHTML = html;
     totalCount.textContent = total;
+
+    // Attach clear handlers
+    channelList.querySelectorAll('.btn-clear').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const ch = btn.getAttribute('data-channel');
+        chrome.storage.local.get(STORAGE_KEY, (result) => {
+          const data = result[STORAGE_KEY] || {};
+          delete data[ch];
+          chrome.storage.local.set({ [STORAGE_KEY]: data }, () => {
+            renderStats();
+          });
+        });
+      });
+    });
   });
 }
 
@@ -113,15 +142,15 @@ function escapeHtml(text) {
   return div.innerHTML;
 }
 
-// Listen for storage changes from background (triggers when background updates channelData)
-browser.storage.onChanged.addListener((changes, areaName) => {
-  if (areaName === 'local' && changes.channelData) {
-    renderChannelList();
+// Listen for storage changes
+chrome.storage.onChanged.addListener((changes, areaName) => {
+  if (areaName === 'local' && changes[STORAGE_KEY]) {
+    renderStats();
   }
 });
 
-// Poll for updates every 2 seconds as backup (popup doesn't always receive storage changes)
-setInterval(renderChannelList, 2000);
+// Poll as backup (popup might not receive storage changes reliably)
+setInterval(renderStats, 2000);
 
 document.addEventListener('DOMContentLoaded', () => {
   const toggle = document.getElementById('toggleSwitch');
@@ -140,8 +169,8 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   updateStatus(toggle.checked);
 
-  // Render channel list
-  renderChannelList();
+  // Render stats
+  renderStats();
 
   // Language toggle
   langBtns.forEach(btn => {
@@ -156,13 +185,19 @@ document.addEventListener('DOMContentLoaded', () => {
     localStorage.setItem('twitchAutoClaimerEnabled', String(enabled));
     updateStatus(enabled);
 
-    browser.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-      if (tabs[0]?.id) {
-        browser.tabs.sendMessage(tabs[0].id, {
-          type: 'TOGGLE',
-          enabled: enabled
-        }).catch(() => {});
-      }
-    });
+    browser.runtime.sendMessage({
+      type: 'TOGGLE',
+      enabled: enabled
+    }).catch(() => {});
   });
+
+  // Clear all button
+  const clearAllBtn = document.getElementById('clearAllBtn');
+  if (clearAllBtn) {
+    clearAllBtn.addEventListener('click', () => {
+      chrome.storage.local.remove(STORAGE_KEY, () => {
+        renderStats();
+      });
+    });
+  }
 });

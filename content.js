@@ -1,173 +1,123 @@
-// Twitch Auto Claimer - Content Script v17
-// Per-channel claim tracking
+// Twitch Auto Claimer - Content Script v18
+// Direct storage approach (like reference project)
 
-(function() {
-  const DEBUG = true;
-  let isEnabled = true;
-  let lastClaimTime = 0;
-  const CLAIM_COOLDOWN = 5000;
-  const CHANNEL_SYNC_CHANNEL = 'twitch-auto-claimer-sync';
+const STORAGE_KEY = 'twitchAutoClaimerChannelData';
+const CLAIM_INTERVAL = 2000;
+const EXCLUDE_URLS = [
+  /.*:\/\/dashboard\.twitch\.tv.*/,
+  /.*:\/\/.*\.twitch\.tv\/settings\/.*/,
+];
 
-  function log(...args) {
-    if (DEBUG) console.log('[Twitch Auto Claimer]', ...args);
+let isEnabled = true;
+
+function isExcluded() {
+  return EXCLUDE_URLS.some(pattern => window.location.href.match(pattern));
+}
+
+// Listen for toggle messages from popup
+browser.runtime.onMessage.addListener((message) => {
+  if (message.type === 'TOGGLE') {
+    isEnabled = message.enabled;
   }
+});
 
-  function getChannelName() {
-    const match = window.location.pathname.match(/^\/([a-zA-Z0-9_]+)/);
-    return match ? match[1] : 'unknown';
+function getChannelName() {
+  const match = window.location.pathname.match(/^\/([a-zA-Z0-9_]+)/);
+  return match ? match[1] : 'unknown';
+}
+
+function getButtonByAriaLabel() {
+  const labels = [
+    "Claim Bonus",
+    "領取額外獎勵",
+    "领取奖励",
+    "ボーナスを受け取る",
+    "보너스 받기",
+    // Add more languages as needed
+  ];
+
+  for (const label of labels) {
+    const btn = document.querySelector(`[aria-label="${label}"]`);
+    if (btn) return btn;
   }
+  return null;
+}
 
-  let channel;
+function findClaimButton() {
+  // Try aria-label first
+  const byAria = getButtonByAriaLabel();
+  if (byAria) return byAria;
+
+  // Fallback: class-based
+  const byClass = document.querySelector('.ScCoreButtonSuccess-sc-1qn4ixc-5')
+    || document.querySelector('.VGQNd')
+    || document.querySelector('.claimable-bonus__icon')?.parentElement?.parentElement?.parentElement;
+  if (byClass) return byClass;
+
+  return null;
+}
+
+function clickButton(button) {
+  if (!button) return false;
+
   try {
-    channel = new BroadcastChannel(CHANNEL_SYNC_CHANNEL);
-    channel.onmessage = (event) => {
-      const { type, channelId, rewardId } = event.data;
-      if (type === 'CLAIMED' && channelId !== myChannelId) {
-        log(`[Sync] Another tab claimed this reward, skipping`);
-      }
-    };
-  } catch(e) {
-    log('[Sync] BroadcastChannel not supported');
-  }
+    button.focus();
+    const rect = button.getBoundingClientRect();
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height / 2;
 
-  function getChannelId() {
-    return Math.random().toString(36).substring(2, 10);
-  }
-  const myChannelId = getChannelId();
-
-  browser.runtime.onMessage.addListener((message) => {
-    if (message.type === 'TOGGLE') {
-      isEnabled = message.enabled;
-    } else if (message.type === 'RESET_COUNT') {
-      // Report reset to background
-      browser.runtime.sendMessage({
-        type: 'RESET_CHANNEL',
-        channelName: getChannelName()
-      }).catch(() => {});
-    }
-  });
-
-  function clickElement(el) {
-    if (!el) return false;
+    ['mousedown', 'mouseup', 'click'].forEach(type => {
+      button.dispatchEvent(new MouseEvent(type, {
+        bubbles: true,
+        cancelable: true,
+        view: window,
+        clientX: cx,
+        clientY: cy
+      }));
+    });
+    return true;
+  } catch (e) {
     try {
-      el.focus();
-      const rect = el.getBoundingClientRect();
-      const cx = rect.left + rect.width / 2;
-      const cy = rect.top + rect.height / 2;
-      ['mousedown', 'mouseup', 'click'].forEach(type => {
-        el.dispatchEvent(new MouseEvent(type, {
-          bubbles: true, cancelable: true, view: window, clientX: cx, clientY: cy
-        }));
-      });
+      button.click();
       return true;
-    } catch(e) {
-      try { el.click(); return true; } catch(e2) { return false; }
-    }
-  }
-
-  function findClaimButton() {
-    const byAria = document.querySelector('[aria-label="領取額外獎勵"]');
-    if (byAria) {
-      log('[Found] aria-label="領取額外獎勵"');
-      return byAria;
-    }
-
-    const byClass = document.querySelector('.claimable-bonus__icon');
-    if (byClass) {
-      log('[Found] .claimable-bonus__icon');
-      return byClass;
-    }
-
-    const claimable = document.querySelector('[class*="claimable"]');
-    if (claimable) {
-      log('[Found] [class*="claimable"]');
-      return claimable;
-    }
-
-    return null;
-  }
-
-  function getRewardId(btn) {
-    const attrs = [
-      btn.getAttribute('aria-label') || '',
-      btn.getAttribute('data-a-target') || '',
-      btn.className || ''
-    ].join('|');
-    return attrs.substring(0, 50);
-  }
-
-  let lastRewardId = null;
-  let claimedThisSession = false;
-
-  function tryClaim() {
-    if (!isEnabled) return false;
-    const now = Date.now();
-    if (now - lastClaimTime < CLAIM_COOLDOWN) return false;
-
-    const btn = findClaimButton();
-    if (!btn) {
-      claimedThisSession = false;
+    } catch (e2) {
       return false;
     }
-
-    const rect = btn.getBoundingClientRect();
-    if (rect.width === 0 || rect.height === 0) {
-      claimedThisSession = false;
-      return false;
-    }
-
-    const rewardId = getRewardId(btn);
-
-    if (claimedThisSession && rewardId === lastRewardId) {
-      log('[Skip] Same specific button as last claim (still on page)');
-      return false;
-    }
-
-    const channelName = getChannelName();
-    log(`[Claim] Clicking reward on ${channelName}`);
-    const clicked = clickElement(btn);
-    if (clicked) {
-      lastClaimTime = now;
-      lastRewardId = rewardId;
-      claimedThisSession = true;
-
-      // Sync with other tabs
-      if (channel) {
-        channel.postMessage({
-          type: 'CLAIMED',
-          channelId: myChannelId,
-          rewardId: rewardId,
-          timestamp: now,
-          channelName: channelName
-        });
-      }
-
-      // Report to background for storage and per-channel tracking
-      browser.runtime.sendMessage({
-        type: 'CLAIM',
-        channelName: channelName
-      }).then(() => {
-        log('[BG] Claim reported to background');
-      }).catch(() => {
-        log('[BG] Failed to report claim');
-      });
-
-      return true;
-    }
-    return false;
   }
+}
 
-  log(`[Init] Twitch Auto Claimer loaded (tab: ${myChannelId})`);
-
-  const observer = new MutationObserver(() => {
-    if (isEnabled) tryClaim();
+function recordClaim(channelName) {
+  chrome.storage.local.get(STORAGE_KEY, (result) => {
+    let data = result[STORAGE_KEY] || {};
+    if (!data[channelName]) {
+      data[channelName] = 0;
+    }
+    data[channelName]++;
+    chrome.storage.local.set({ [STORAGE_KEY]: data }, () => {});
   });
-  observer.observe(document.body, { childList: true, subtree: true });
+}
 
-  setTimeout(tryClaim, 2000);
-  setInterval(tryClaim, 2000);
+function tryClaim() {
+  if (!isEnabled) return;
+  if (isExcluded()) return;
 
-  document.addEventListener('click', () => setTimeout(tryClaim, 100), true);
+  const button = findClaimButton();
+  if (!button) return;
 
-  log('[Ready] Watching for rewards...');
-})();
+  // Only click if it's actually a button element or has clickable parent
+  let clickTarget = button;
+  if (button.nodeName !== 'BUTTON') {
+    clickTarget = button.closest('button') || button;
+  }
+
+  if (clickButton(clickTarget)) {
+    const channelName = getChannelName();
+    recordClaim(channelName);
+    console.log(`[Twitch Auto Claimer] Claimed on ${channelName}`);
+  }
+}
+
+// Main loop - same as reference project
+setInterval(tryClaim, CLAIM_INTERVAL);
+
+console.log('[Twitch Auto Claimer] Loaded');
