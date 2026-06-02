@@ -107,9 +107,51 @@ function isValidClaimButton(button) {
   return true;
 }
 
+function isStreamLive() {
+  // Don't claim on dashboard or settings pages
+  if (isExcluded()) return false;
+
+  // Check if video player has active stream
+  // The channel is live only if:
+  // 1. There's a video element with playback (readyState > 0)
+  // 2. AND it's not in error/paused state
+  
+  const video = document.querySelector('.video-player video');
+  if (!video) return false;
+  
+  // If video has no source or no data, stream is not live
+  if (video.readyState === 0) return false;
+  
+  // Check if video is actually playing (not paused, not error)
+  if (video.paused) return false;
+  if (video.error) return false;
+  
+  // Additional check: look for "live" indicator in the UI
+  const liveIndicator = document.querySelector('[data-a-target="player-live-status"]');
+  if (liveIndicator) {
+    const liveText = liveIndicator.textContent?.toLowerCase() || '';
+    if (!liveText.includes('live')) return false;
+  }
+  
+  // Also check the channel header - live channels have a "Live" badge
+  const liveBadge = document.querySelector('.stream-page__live-badge, [data-a-target="stream-status"]');
+  if (liveBadge) {
+    const badgeText = liveBadge.textContent?.toLowerCase() || '';
+    if (!badgeText.includes('live')) return false;
+  }
+  
+  return true;
+}
+
 function tryClaim() {
   if (!isEnabled) return;
   if (isExcluded()) return;
+
+  // Only claim when stream is actually live
+  if (!isStreamLive()) {
+    // Silent skip - not an error condition
+    return;
+  }
 
   const button = findClaimButton();
   if (!button) return;
