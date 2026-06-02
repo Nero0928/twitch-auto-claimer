@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      width: 340px;
+      padding: 0;
+      background: #0d0d0f;
+      color: #f5f5f5;
+      overflow-x: hidden;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #1a1a1f 0%, #0d0d0f 100%);
+      padding: 14px 16px 12px;
+      border-bottom: 1px solid rgba(255, 169, 77, 0.15);
+      position: relative;
+    }
+
+    .header::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, #ff9a4d, #ffb347, #ff6b35);
+    }
+
+    .title-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 4px;
+    }
+
+    .title-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .logo {
+      width: 30px;
+      height: 30px;
+      background: linear-gradient(135deg, #ff9a4d 0%, #ff6b35 100%);
+      border-radius: 7px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 15px;
+      box-shadow: 0 2px 8px rgba(255, 107, 53, 0.3);
+    }
+
+    h1 {
+      font-size: 16px;
+      font-weight: 700;
+      background: linear-gradient(90deg, #ff9a4d, #ffb347);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      letter-spacing: -0.3px;
+    }
+
+    .lang-toggle {
+      display: flex;
+      background: #1a1a1f;
+      border-radius: 6px;
+      padding: 3px;
+      gap: 2px;
+    }
+
+    .lang-btn {
+      padding: 4px 9px;
+      font-size: 10px;
+      font-weight: 600;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      background: transparent;
+      color: #555;
+    }
+
+    .lang-btn.active {
+      background: linear-gradient(135deg, #ff9a4d 0%, #ff6b35 100%);
+      color: #fff;
+      box-shadow: 0 2px 6px rgba(255, 107, 53, 0.3);
+    }
+
+    .lang-btn:not(.active):hover {
+      color: #888;
+    }
+
+    .tagline {
+      font-size: 10px;
+      color: #666;
+      margin-left: 40px;
+    }
+
+    .content {
+      padding: 14px;
+    }
+
+    .section {
+      background: linear-gradient(145deg, #1a1a1f 0%, #151518 100%);
+      border: 1px solid rgba(255, 169, 77, 0.1);
+      border-radius: 10px;
+      padding: 14px;
+      margin-bottom: 12px;
+    }
+
+    .section-title {
+      font-size: 11px;
+      color: #ff9a4d;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      font-weight: 600;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .about-text {
+      font-size: 12px;
+      color: #888;
+      line-height: 1.6;
+      margin-bottom: 12px;
+    }
+
+    .about-text:last-child {
+      margin-bottom: 0;
+    }
+
+    .back-btn {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: transparent;
+      border: 1px solid #333;
+      color: #666;
+      font-size: 11px;
+      padding: 8px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s;
+      width: 100%;
+      justify-content: center;
+      margin-bottom: 12px;
+    }
+
+    .back-btn:hover {
+      border-color: #ff9a4d;
+      color: #ff9a4d;
+    }
+
+    /* Ko-fi section */
+    .kofi-section {
+      background: linear-gradient(145deg, #1a1a1f 0%, #151518 100%);
+      border: 1px solid rgba(255, 169, 77, 0.1);
+      border-radius: 10px;
+      padding: 14px;
+      margin-bottom: 12px;
+      text-align: center;
+    }
+
+    .kofi-title {
+      font-size: 11px;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 12px;
+    }
+
+    .kofi-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 40px;
+    }
+
+    /* Ko-fi iframe button */
+    .kofi-iframe {
+      border: none;
+      width: 180px;
+      height: 40px;
+    }
+
+    .footer {
+      padding: 12px 14px;
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+      text-align: center;
+    }
+
+    .footer-text {
+      font-size: 10px;
+      color: #444;
+    }
+
+    .footer-text span {
+      color: #ff9a4d;
+    }
+
+    .version {
+      font-size: 9px;
+      color: #333;
+      background: #1a1a1f;
+      padding: 3px 7px;
+      border-radius: 4px;
+      margin-left: 8px;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="title-row">
+      <div class="title-left">
+        <div class="logo">🦊</div>
+        <h1>Twitch Auto Claimer</h1>
+      </div>
+      <div class="lang-toggle">
+        <button class="lang-btn" data-lang="zh">中</button>
+        <button class="lang-btn active" data-lang="en">EN</button>
+      </div>
+    </div>
+    <p class="tagline">Settings & About</p>
+  </div>
+
+  <div class="content">
+    <button class="back-btn" id="backBtn">← Back to popup</button>
+
+    <!-- Ko-fi Donate Section -->
+    <div class="kofi-section">
+      <div class="kofi-title">Support Development</div>
+      <div class="kofi-container">
+        <iframe
+          src="https://ko-fi.com/widget.html?v=2&name=Twitch Auto Claimer&code=B3D820O9OV"
+          class="kofi-iframe"
+          scrolling="no"
+          frameborder="0"
+          sandbox="allow-scripts allow-same-origin">
+        </iframe>
+      </div>
+    </div>
+
+    <!-- About Section -->
+    <div class="section">
+      <div class="section-title">📖 About</div>
+      <p class="about-text" id="aboutText">
+        Twitch Auto Claimer automatically claims channel point rewards when they appear. Supports per-channel tracking with beautiful dark theme.
+      </p>
+      <p class="about-text" id="aboutTextZh" style="display:none;">
+        Twitch Auto Claimer 自動領取 Twitch 頻道點數獎勵，支援每頻道獨立統計，深色狐狸主題。
+      </p>
+    </div>
+
+    <!-- How It Works -->
+    <div class="section">
+      <div class="section-title">💡 How It Works</div>
+      <p class="about-text" id="howText">
+        1. Install the extension<br>
+        2. Make sure Auto-claim is enabled<br>
+        3. Visit Twitch channels<br>
+        4. Rewards are claimed automatically!
+      </p>
+      <p class="about-text" id="howTextZh" style="display:none;">
+        1. 安裝擴充功能<br>
+        2. 確保自動領取已開啟<br>
+        3. 造訪 Twitch 頻道<br>
+        4. 獎勵會自動領取！
+      </p>
+    </div>
+
+    <!-- Privacy -->
+    <div class="section">
+      <div class="section-title">🔒 Privacy</div>
+      <p class="about-text" id="privacyText">
+        This extension does not collect any personal data. All data is stored locally in your browser. No tracking, no analytics, no servers.
+      </p>
+      <p class="about-text" id="privacyTextZh" style="display:none;">
+        此擴充功能不會收集任何個人資料。所有資料都儲存在瀏覽器本地，無追蹤、無分析、無伺服器。
+      </p>
+    </div>
+  </div>
+
+  <div class="footer">
+    <span class="footer-text">Made with <span>♥</span> by 狐狐 <span class="version">v1.0.4</span></span>
+  </div>
+
+  <script src="settings.js"></script>
+</body>
+</html>

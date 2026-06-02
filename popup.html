@@ -374,54 +374,6 @@
       font-size: 12px;
     }
 
-    /* Donate section */
-    .donate-section {
-      background: linear-gradient(145deg, #1a1a1f 0%, #151518 100%);
-      border: 1px solid rgba(255, 169, 77, 0.1);
-      border-radius: 10px;
-      padding: 14px;
-      margin-bottom: 12px;
-      text-align: center;
-    }
-
-    .donate-title {
-      font-size: 11px;
-      color: #888;
-      margin-bottom: 10px;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-
-    .donate-buttons {
-      display: flex;
-      gap: 8px;
-      justify-content: center;
-    }
-
-    .btn-donate {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 8px 20px;
-      border-radius: 6px;
-      font-size: 12px;
-      font-weight: 600;
-      text-decoration: none;
-      transition: all 0.2s;
-      cursor: pointer;
-      border: none;
-    }
-
-    .btn-paypal {
-      background: #0070ba;
-      color: #fff;
-    }
-
-    .btn-paypal:hover {
-      background: #005ea6;
-      transform: translateY(-1px);
-    }
-
     .footer {
       padding: 12px 14px;
       border-top: 1px solid rgba(255, 255, 255, 0.05);
@@ -445,6 +397,26 @@
       background: #1a1a1f;
       padding: 3px 7px;
       border-radius: 4px;
+    }
+
+    .footer-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-settings {
+      background: transparent;
+      border: none;
+      font-size: 14px;
+      cursor: pointer;
+      padding: 2px;
+      opacity: 0.5;
+      transition: opacity 0.2s;
+    }
+
+    .btn-settings:hover {
+      opacity: 1;
     }
   </style>
 </head>
@@ -496,19 +468,15 @@
       </div>
     </div>
 
-    <div class="donate-section">
-      <div class="donate-title" data-i18n="donate_title">Support Development</div>
-      <div class="donate-buttons">
-        <a class="btn-donate btn-paypal" href="https://paypal.me/Nero0928Nero0928" target="_blank">
-          💙 PayPal
-        </a>
-      </div>
     </div>
   </div>
 
   <div class="footer">
     <span class="footer-text">Made with <span>♥</span> by 狐狐</span>
-    <span class="version">v1.0.0</span>
+    <div class="footer-right">
+      <button class="btn-settings" id="settingsBtn" title="Settings">⚙️</button>
+      <span class="version">v1.0.5</span>
+    </div>
   </div>
 
   <script src="popup.js"></script>

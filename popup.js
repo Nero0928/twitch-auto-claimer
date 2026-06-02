@@ -193,6 +193,14 @@ document.addEventListener('DOMContentLoaded', () => {
     }).catch(() => {});
   });
 
+  // Settings button - open settings page
+  const settingsBtn = document.getElementById('settingsBtn');
+  if (settingsBtn) {
+    settingsBtn.addEventListener('click', () => {
+      chrome.tabs.create({ url: chrome.runtime.getURL('settings.html') });
+    });
+  }
+
   // Clear all button
   const clearAllBtn = document.getElementById('clearAllBtn');
   if (clearAllBtn) {
