@@ -14,7 +14,7 @@ Tested by the author on Microsoft Edge. Chrome uses the same Manifest V3 package
 - Popup: on/off switch, per-channel click counts, a points figure of 50 per click (an estimate, not your Twitch balance), clear one channel or clear all, and a link to that channel.
 - Popup language switch, English or Traditional Chinese. Saved in the popup, not taken from `_locales`.
 - Settings page with a short about / how-to / privacy note and a Ko-fi donation widget.
-- Dark popup. The mark in the header is a fox emoji.
+- Dark popup. The header mark is a fox emoji. The toolbar icon is the orange paw on a gold coin in `icons/`.
 - The text Chrome and Edge show under the extension name comes from `_locales` (`en`, `zh_TW`). The manifest name itself is always `Twitch Auto Claimer`.
 
 ## Install from source
@@ -87,6 +87,9 @@ _locales/zh_TW/messages.json
 icons/icon16.png
 icons/icon48.png
 icons/icon128.png
+icons/icon256.png
+icons/icon512.png
+store-assets/icon_master.png
 scripts/package.mjs
 scripts/package.ps1
 scripts/render-store-screenshots.mjs

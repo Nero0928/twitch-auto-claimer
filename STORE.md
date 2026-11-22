@@ -1,6 +1,6 @@
 # Store submission (v1.0.5)
 
-給作者：程式的領取邏輯沒有改。這次只做了兩處產品檔案的修改：`manifest.json` 拿掉沒有使用的 `activeTab`，`settings.html` 頁尾版本號從 v1.0.4 改成 v1.0.5（與 manifest、彈出視窗一致）。圖示三張都是白的，送審前一定要換成真的圖。這個版本沒有 PayPal，贊助按鈕是設定頁的 Ko-fi。Firefox 不支援。打包用下面的指令，壓縮檔在 `dist/`，不要把 `dist/` 提交進 git。
+給作者：程式的領取邏輯沒有改。`manifest.json` 拿掉沒有使用的 `activeTab`，`settings.html` 頁尾版本號是 v1.0.5。工具列圖示是橘色爪印壓著金幣，manifest 只列 16、48、128。`icons/icon256.png` 與 `icons/icon512.png` 給商店上傳，`store-assets/icon_master.png` 是 1024 原圖。這個版本沒有 PayPal，贊助按鈕是設定頁的 Ko-fi。Firefox 不支援。打包用下面的指令，壓縮檔在 `dist/`，不要把 `dist/` 提交進 git。
 
 ## Package
 
@@ -27,19 +27,22 @@ Left out: this file, `README.md`, `README.zh-TW.md`, `PRIVACY.md`, `scripts/`, `
 
 ## Icons
 
-| File | In the repo | What it actually is |
+Orange fox paw pressing a gold coin, on a dark navy rounded square. Transparent 8-bit RGBA, full frames.
+
+| File | Size | Use |
 | --- | --- | --- |
-| `icons/icon16.png` | Yes, 118 bytes, IHDR 16×16 | Paints as a blank white square |
-| `icons/icon48.png` | Yes, 241 bytes, IHDR 48×48 | Paints as a blank white square |
-| `icons/icon128.png` | Yes, 605 bytes, IHDR 128×128 | Paints as a blank white square |
-| `icon256.png` | No | Not required inside the zip |
-| `icon512.png` | No | Not required inside the zip |
+| `icons/icon16.png` | 16×16 | Toolbar. In `manifest.json` `action` and `icons`. |
+| `icons/icon48.png` | 48×48 | Extension management page. In the manifest. |
+| `icons/icon128.png` | 128×128 | Chrome Web Store icon upload, and the manifest. |
+| `icons/icon256.png` | 256×256 | Store upload. Not in the manifest. |
+| `icons/icon512.png` | 512×512 | Store upload. Not in the manifest. |
+| `store-assets/icon_master.png` | 1024×1024 | Source art. Not in the zip. |
 
-`icon128.png` is a PNG container (8-bit RGBA, CRC checks pass) but the image data is short: the IDAT stream decompresses to 49,280 bytes, and a full 128×128 RGBA frame with filter bytes is 65,664 bytes. Chrome still reports 128×128 and fires the image load event. The pixels that show are white, with a tiny cyan speck. The 16 and 48 files are the same kind of file. They are not a low-resolution drawing of a logo. They are blank, and they are not usable as a toolbar icon or a store icon.
+The manifest stays at 16, 48, and 128. Those are the sizes Chrome uses for the toolbar, the extensions page, and the packed icon. 256 and 512 are for the dashboards, so they are not added as manifest keys. The packager copies all of `icons/`, so the zip includes 256 and 512. It does not include `store-assets/`.
 
-Chrome's listing needs a real **128×128** icon, uploaded in the dashboard (the manifest icon is separate from that upload, and this file should not be that upload). Edge wants a square logo, **300×300 recommended**, **128×128 minimum**, also uploaded in Partner Center rather than shipped as `icon256.png`. Optional promo tiles (Chrome and Edge: 440×280 and 1400×560) are not in this repo.
+Chrome's listing upload is the 128×128 file: `icons/icon128.png`. Edge's logo is a separate upload, 300×300 recommended and 128×128 minimum. `icons/icon512.png` is the closest large square. If Partner Center requires exactly 300×300, scale `store-assets/icon_master.png` to that size. Optional promo tiles (440×280 and 1400×560) are still not in this repo.
 
-Replace `icons/icon16.png`, `icons/icon48.png`, and `icons/icon128.png` with real PNGs of those sizes before you ship. The popup's fox is an emoji in the HTML, not these files.
+The popup and settings header is still the fox emoji in the HTML, not these PNGs. The store screenshots were left as they are because they do not show the icon files.
 
 ## Screenshots
 
@@ -173,7 +176,7 @@ Open a live Twitch channel with the extension installed and leave auto-claim on.
 3. Paste the single purpose, the two permission justifications, the remote-code answer, and the data-use answers.
 4. Paste the privacy policy URL.
 5. Store listing: name comes from the manifest (`Twitch Auto Claimer`). Paste the English detailed description. Add a zh-TW locale and paste the Traditional Chinese description.
-6. Upload a real 128×128 icon. Do not upload `icons/icon128.png` as it is now.
+6. Upload `icons/icon128.png` as the 128×128 store icon.
 7. Upload the screenshots (up to 5).
 8. Submit. Review time is up to Google.
 
@@ -185,7 +188,7 @@ Same zip. There is no Edge developer fee. Guide: https://learn.microsoft.com/en-
 2. Create an extension and upload the zip. The extension name on the listing is taken from the manifest and is not edited there.
 3. Privacy page: paste the same single purpose, `storage` justification, host-permission justification, remote-code **Yes** text, data-use answers, and privacy policy URL.
 4. Store listings: add English and Chinese (Traditional). For each language, paste the long description (Edge requires at least 250 characters). Category is required; Entertainment is the closest. You can pick another.
-5. Upload a real square logo (300×300 recommended, 128×128 minimum). Upload the 1280×800 screenshots (up to 6). You can duplicate assets from one language to the other.
+5. Upload a square logo (300×300 recommended, 128×128 minimum). Use `icons/icon512.png`, or scale `store-assets/icon_master.png` to 300×300 if the form requires that exact size. Upload the 1280×800 screenshots (up to 6). You can duplicate assets from one language to the other.
 6. Publish. Microsoft's guide says certification can take up to seven business days.
 
 The author already tested the extension's behavior on Microsoft Edge. This packaging pass did not change `content.js`, `popup.js`, `settings.js`, or `background.js`.
