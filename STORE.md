@@ -1,152 +1,194 @@
-# Chrome Web Store Publishing Guide
+# Store submission (v1.0.5)
 
-## Current Status: Ready for Submission
+給作者：程式的領取邏輯沒有改。`manifest.json` 拿掉沒有使用的 `activeTab`，`settings.html` 頁尾版本號是 v1.0.5。工具列圖示是橘色爪印壓著金幣，manifest 只列 16、48、128。`icons/icon256.png` 與 `icons/icon512.png` 給商店上傳，`store-assets/icon_master.png` 是 1024 原圖。這個版本沒有 PayPal，贊助按鈕是設定頁的 Ko-fi。Firefox 不支援。打包用下面的指令，壓縮檔在 `dist/`，不要把 `dist/` 提交進 git。
 
-## Pre-Submission Checklist
+## Package
 
-### ✅ Already Done
-- [x] PayPal donate button (https://paypal.me/Nero0928Nero0928)
-- [x] Store-ready icons (16x16, 48x48, 128x128, 256x256, 512x512)
-- [x] Manifest V3 compatible
-- [x] Native i18n support (EN/zh_TW)
+Both scripts read `version` from `manifest.json` and write `dist/twitch-auto-claimer-<version>.zip`. `dist/` is gitignored. The zip root is the extension (`manifest.json` at the top), which is what both stores expect.
 
-### ⏳ You Need to Do
-
-**1. Take Real Screenshots (Required: 1-5 screenshots)**
-
-The Chrome Web Store requires real screenshots of your extension. AI-generated images won't work because:
-- Text won't be legible
-- May violate store policies
-
-**How to take screenshots:**
-1. Install the extension locally
-2. Open Twitch (or any page where popup works)
-3. Click the extension icon to show popup
-4. Take screenshot:
-   - Windows: `Win + Shift + S` then drag area, or PrtScn
-   - Or use browser's built-in screenshot tool
-5. Recommended sizes: **1280x800** or **640x400**
-
-**Suggested screenshots:**
-1. Main popup showing stats (English)
-2. Main popup showing stats (Chinese)
-3. Close-up of the stats card with multiple channels
-
-**2. Create Developer Account**
-
-1. Go to https://chrome.google.com/webstore/devconsole
-2. Click "Add new item"
-3. Pay $5 one-time developer fee
-4. Verify your email
-
-**3. Create ZIP Package**
-
-When ready to publish:
 ```bash
-cd ~/twitch-auto-claimer && git pull
+node scripts/package.mjs
 ```
 
-Then zip the extension folder (not the repo root, just the extension files):
-```
-twitch-auto-claimer/
-├── manifest.json
-├── background.js
-├── content.js
-├── popup.html
-├── popup.js
-├── _locales/
-│   ├── en/messages.json
-│   └── zh_TW/messages.json
-└── icons/
-    ├── icon16.png
-    ├── icon48.png
-    ├── icon128.png
-    ├── icon256.png
-    └── icon512.png
+Windows PowerShell:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\package.ps1
 ```
 
----
+Included:
 
-## Store Listing Content
+- `manifest.json`
+- root `*.js` and `*.html` (`background.js`, `content.js`, `popup.js`, `settings.js`, `popup.html`, `settings.html`)
+- `_locales/`
+- `icons/`
 
-### English (en)
-**Title:** Twitch Auto Claimer
+Left out: this file, `README.md`, `README.zh-TW.md`, `PRIVACY.md`, `scripts/`, `store-assets/`, `.git`.
 
-**Description:**
-```
-Automatically claim Twitch channel points rewards when they appear.
+## Icons
 
-Features:
-• Auto-claim bonus rewards when they appear
-• Per-channel tracking with claim counts
-• Bilingual support (English/繁體中文)
-• Beautiful dark theme with fox design
-• Support development via PayPal
+Orange fox paw pressing a gold coin, on a dark navy rounded square. Transparent 8-bit RGBA, full frames.
 
-How it works:
-1. Install the extension
-2. Make sure Auto-claim is enabled
-3. Visit Twitch channels
-4. Rewards are claimed automatically!
+| File | Size | Use |
+| --- | --- | --- |
+| `icons/icon16.png` | 16×16 | Toolbar. In `manifest.json` `action` and `icons`. |
+| `icons/icon48.png` | 48×48 | Extension management page. In the manifest. |
+| `icons/icon128.png` | 128×128 | Chrome Web Store icon upload, and the manifest. |
+| `icons/icon256.png` | 256×256 | Store upload. Not in the manifest. |
+| `icons/icon512.png` | 512×512 | Store upload. Not in the manifest. |
+| `store-assets/icon_master.png` | 1024×1024 | Source art. Not in the zip. |
 
-Note: This extension does not collect any personal data. All processing happens locally in your browser.
-```
+The manifest stays at 16, 48, and 128. Those are the sizes Chrome uses for the toolbar, the extensions page, and the packed icon. 256 and 512 are for the dashboards, so they are not added as manifest keys. The packager copies all of `icons/`, so the zip includes 256 and 512. It does not include `store-assets/`.
 
-### Chinese (zh_TW)
-**標題:** Twitch Auto Claimer
+Chrome's listing upload is the 128×128 file: `icons/icon128.png`. Edge's logo is a separate upload, 300×300 recommended and 128×128 minimum. `icons/icon512.png` is the closest large square. If Partner Center requires exactly 300×300, scale `store-assets/icon_master.png` to that size. Optional promo tiles (440×280 and 1400×560) are still not in this repo.
 
-**描述:**
-```
-自動領取 Twitch 頻道點數獎勵。
+The popup and settings header is still the fox emoji in the HTML, not these PNGs. The store screenshots were left as they are because they do not show the icon files.
 
-功能：
-• 獎勵出現時自動領取
-• 每頻道獨立統計領取次數
-• 雙語支援（English/繁體中文）
-• 狐狸主題深色介面
-• 可透過 PayPal 支持開發
+## Screenshots
 
-使用方法：
-1. 安裝擴充功能
-2. 確保自動領取已開啟
-3. 造訪 Twitch 頻道
-4. 獎勵會自動領取！
+Rendered from the real `popup.html` and `settings.html` in headless Chrome. `chrome.*` / `browser.*` were stubbed. Sample counts: `moonlight_static` 24, `foxden_live` 11, `night_market` 4 (39 total, 50 points per click). Language is the extension's own English / 中文 switch. The 中文 strings are Traditional Chinese. Each file is exactly 1280×800. The 340px-wide page is centered on the extension background (`#0d0d0f`). Nothing else was drawn on top.
 
-注意：此擴充功能不會收集任何個人資料。所有處理都在瀏覽器本地完成。
+| File | What it shows |
+| --- | --- |
+| [store-assets/popup-en-1280x800.png](store-assets/popup-en-1280x800.png) | Popup, English |
+| [store-assets/popup-zh-TW-1280x800.png](store-assets/popup-zh-TW-1280x800.png) | Popup, Traditional Chinese |
+| [store-assets/settings-en-1280x800.png](store-assets/settings-en-1280x800.png) | Settings, English |
+| [store-assets/settings-zh-TW-1280x800.png](store-assets/settings-zh-TW-1280x800.png) | Settings, Traditional Chinese |
+
+Regenerate (needs `puppeteer-core` and Chrome):
+
+```bash
+npm install puppeteer-core
+node scripts/render-store-screenshots.mjs
 ```
 
----
+The Ko-fi widget did not paint. A headless request to `ko-fi.com` got a Cloudflare challenge, so the Support Development box is an empty frame. The rest of each settings shot is the real page. Retake the two settings images in Edge if you want the donate button visible on the listing. These are not photos of a Twitch watch page. Add one of those yourself if you want the popup shown over a channel.
 
-## Store Assets Status
+Chrome accepts 1280×800 or 640×400, at least 1 and at most 5. Edge accepts 1280×800 or 640×480, up to 6. These four are 1280×800, so the same files fit both. Edge can duplicate one language's images to the other.
 
-| Asset | Status | Notes |
-|-------|--------|-------|
-| icon16.png | ✅ Ready | Toolbar icon |
-| icon48.png | ✅ Ready | Extension page |
-| icon128.png | ✅ Ready | Store listing |
-| icon256.png | ✅ Ready | Store listing (hi-res) |
-| icon512.png | ✅ Ready | Store listing (hi-res) |
-| Screenshot 1 | ⏳ Needed | 1280x800 English |
-| Screenshot 2 | ⏳ Needed | 1280x800 Chinese |
-| Promotional image | ⏳ Optional | 1280x640 |
+## Single purpose
 
----
+Paste:
 
-## Submitting
+```
+Automatically click the channel-points bonus button on a live Twitch channel and show a local count of those clicks.
+```
 
-1. Go to https://chrome.google.com/webstore/devconsole
-2. Click "Add new item"
-3. Upload ZIP
-4. Fill in store listing (use content above)
-5. Upload screenshots
-6. Submit for review
+## Permission justifications
 
-**Review time:** Usually 1-3 days
+`activeTab` was removed from `manifest.json`. Nothing calls `chrome.scripting` or `tabs.executeScript`, nothing reads `tab.url`, and the content script is injected by the manifest on Twitch. `chrome.tabs.create` (the settings gear) and `tabs.sendMessage` to that content script do not need `activeTab`. The host permission already covers Twitch. The privacy form only asks about permissions that are still in the package. If an older zip still lists `activeTab`, delete it and upload again rather than justifying it.
 
----
+### storage
 
-## Post-Publication
+```
+Saves a map of Twitch channel names to how many times this extension clicked the bonus button, in chrome.storage.local under the key twitchAutoClaimerChannelData, so the popup can show the counts after the browser restarts. The extension does not use chrome.storage.sync and does not send this map off the device. The on/off switch and the popup language use the extension page's own localStorage and do not need this permission.
+```
 
-- Monitor reviews and ratings
-- Keep extension updated with Twitch changes
-- Respond to user feedback
+### Host permission `*://*.twitch.tv/*`
+
+```
+The content script has to run inside Twitch channel pages to find the bonus button and click it. This is the same set of pages as content_scripts.matches. The script does not run on other sites. It skips dashboard.twitch.tv and Twitch settings URLs, and it does not click unless a live video is playing.
+```
+
+## Remote code
+
+Answer **Yes**. The claim loop is packaged. The settings page is not fully local:
+
+```
+All extension logic ships in the zip. settings.html embeds Ko-fi's donation widget in an iframe, https://ko-fi.com/widget.html?v=2&name=Twitch Auto Claimer&code=B3D820O9OV, with sandbox allow-scripts allow-same-origin. The widget loads only when the user opens Settings. It is not used to click the bonus button, and the claim counts are not added to that request. No other remote script is loaded.
+```
+
+Do not answer "No, I am not using remote code" while that iframe is still in `settings.html`. Removing the iframe would be a code change; this package does not do that.
+
+## Data use
+
+Do not check any data-type box:
+
+- Personally identifiable information
+- Health information
+- Financial and payment information
+- Authentication information
+- Personal communications
+- Location
+- Web history
+- User activity
+- Website content
+
+Check all three certifications:
+
+- I do not sell or transfer user data to third parties, outside of the approved use cases.
+- I do not use or transfer user data for purposes that are unrelated to my item's single purpose.
+- I do not use or transfer user data to determine creditworthiness or for lending purposes.
+
+What the code actually does, so the answers stay consistent with [PRIVACY.md](PRIVACY.md):
+
+- Channel name (first URL path segment) and a click count stay in `chrome.storage.local`. Not synced, not uploaded.
+- Popup language and the on/off switch stay in the extension page's `localStorage`, not the Twitch page's.
+- The content script reads the bonus button and the video player in memory to decide whether to click. It does not store or upload page content.
+- Opening Settings loads the Ko-fi iframe. That request does not include the claim map. Ko-fi can see a normal browser request (IP address and whatever Ko-fi sets). The privacy policy says so. Read the form's help text before certifying the "do not transfer" line if you think that iframe counts as a transfer.
+
+There is no PayPal button in v1.0.5. An older note listed `https://paypal.me/Nero0928Nero0928`. That control was removed and replaced with the Ko-fi widget. The extension does not contact PayPal.
+
+## Privacy policy URL
+
+Host [PRIVACY.md](PRIVACY.md) at a public HTTPS URL and paste it into both dashboards. After this file is on the default branch, this page is enough:
+
+`https://github.com/Nero0928/twitch-auto-claimer/blob/main/PRIVACY.md`
+
+The policy covers local storage, the permissions, the Ko-fi widget, and the fact that the old PayPal URL is not in this version. It includes the Chrome Web Store Limited Use sentence.
+
+## Listing text
+
+The one-line browser description is already in `_locales` (`description`). Edge's store description is a separate field and must be at least 250 characters. Paste the long text below into the Chrome detailed description and into the Edge description. Do not mention PayPal, Firefox, or a MutationObserver.
+
+### English
+
+```
+Automatically clicks Twitch's channel-points bonus button while a live channel is open, and keeps a count of those clicks on your device.
+
+The extension checks the page every two seconds. When the bonus button is visible it clicks it. It recognizes the English, Traditional Chinese, Simplified Chinese, Japanese, and Korean labels Twitch uses for that button. It skips the creator dashboard, settings pages, and any channel whose video is not playing.
+
+The toolbar popup shows a per-channel click count and an estimate of 50 points per click. That estimate is not your real Twitch balance. You can clear one channel or clear every count, and you can switch the popup between English and Traditional Chinese.
+
+Claim counts stay in chrome.storage.local on this browser. They are not uploaded. There is no account and no analytics. The settings page includes an optional Ko-fi donation widget. This version does not link to PayPal.
+
+Open a live Twitch channel with the extension installed and leave auto-claim on. The bonus is clicked for you when the button appears.
+```
+
+### 繁體中文 (zh-TW)
+
+```
+在 Twitch 直播頻道頁面自動點擊頻道點數的額外獎勵按鈕，並把每個頻道的點擊次數留在你的瀏覽器裡。
+
+擴充功能每兩秒檢查一次頁面。獎勵按鈕出現而且看得到時會點下去。它認得 Twitch 這個按鈕的英文、繁體中文、簡體中文、日文和韓文名稱。創作者後台、設定頁，以及影片沒有在播放的頻道會略過。
+
+工具列彈出視窗會顯示各頻道的點擊次數，並用「一次 50 點」做估計。那不是你的 Twitch 真實餘額。可以清除一個頻道或全部次數，也可以把介面切成英文或繁體中文。
+
+次數存在這台瀏覽器的 chrome.storage.local，不會上傳。沒有帳號，也沒有分析。設定頁有一個可選的 Ko-fi 贊助小工具。這個版本沒有 PayPal 連結。
+
+裝好之後打開正在直播的 Twitch 頻道，讓自動領取保持開啟。獎勵按鈕出現時就會被點擊。
+```
+
+## Chrome Web Store
+
+1. Sign in at https://chrome.google.com/webstore/devconsole and pay the one-time **$5** developer registration if you have not already.
+2. Build the zip above and upload it (**Add new item**).
+3. Paste the single purpose, the two permission justifications, the remote-code answer, and the data-use answers.
+4. Paste the privacy policy URL.
+5. Store listing: name comes from the manifest (`Twitch Auto Claimer`). Paste the English detailed description. Add a zh-TW locale and paste the Traditional Chinese description.
+6. Upload `icons/icon128.png` as the 128×128 store icon.
+7. Upload the screenshots (up to 5).
+8. Submit. Review time is up to Google.
+
+## Microsoft Edge Add-ons (Partner Center)
+
+Same zip. There is no Edge developer fee. Guide: https://learn.microsoft.com/en-us/microsoft-edge/extensions/publish/publish-extension
+
+1. Sign in to Partner Center with a Microsoft account: https://partner.microsoft.com/dashboard/microsoftedge/overview
+2. Create an extension and upload the zip. The extension name on the listing is taken from the manifest and is not edited there.
+3. Privacy page: paste the same single purpose, `storage` justification, host-permission justification, remote-code **Yes** text, data-use answers, and privacy policy URL.
+4. Store listings: add English and Chinese (Traditional). For each language, paste the long description (Edge requires at least 250 characters). Category is required; Entertainment is the closest. You can pick another.
+5. Upload a square logo (300×300 recommended, 128×128 minimum). Use `icons/icon512.png`, or scale `store-assets/icon_master.png` to 300×300 if the form requires that exact size. Upload the 1280×800 screenshots (up to 6). You can duplicate assets from one language to the other.
+6. Publish. Microsoft's guide says certification can take up to seven business days.
+
+The author already tested the extension's behavior on Microsoft Edge. This packaging pass did not change `content.js`, `popup.js`, `settings.js`, or `background.js`.
